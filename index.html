@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>專業級加密貨幣看盤系統</title>
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        /* 現代化的 CSS 介面設計 (完全仿造頂級交易所) */
+        body { margin: 0; padding: 0; background-color: #131722; color: #d1d4dc; font-family: -apple-system, sans-serif; overflow: hidden; }
+        .header { padding: 15px 20px; background-color: #1e222d; border-bottom: 1px solid #2b313f; display: flex; flex-direction: column; gap: 10px; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; }
+        h1 { margin: 0; font-size: 20px; color: #fff; font-weight: 600; }
+        .price-display { font-size: 24px; font-weight: bold; color: #00c087; }
+        
+        /* 現代化的按鈕設計 */
+        .controls { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
+        button { background-color: #2b313f; color: #d1d4dc; border: 1px solid #434651; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; white-space: nowrap; transition: all 0.2s ease; }
+        button:hover { background-color: #2962ff; color: white; border-color: #2962ff; }
+        
+        /* 讓圖表完美填滿剩下的螢幕空間 */
+        #tvchart { width: 100vw; height: calc(100vh - 100px); }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="header-top">
+            <h1>📈 BTC/USDT 專業分析</h1>
+            <div class="price-display" id="current-price">載入中...</div>
+        </div>
+        <div class="controls" id="event-buttons">
+            <button onclick="resetZoom()">全貌視角</button>
+            </div>
+    </div>
+    
+    <div id="tvchart"></div>
+
+    <script>
+        // 1. 初始化 TradingView 圖表 (設定為頂級深色模式)
+        const chart = LightweightCharts.createChart(document.getElementById('tvchart'), {
+            layout: { background: { type: 'solid', color: '#131722' }, textColor: '#d1d4dc', },
+            grid: { vertLines: { color: '#2b313f' }, horzLines: { color: '#2b313f' }, },
+            crosshair: { mode: LightweightCharts.CrosshairMode.Normal, },
+            rightPriceScale: { borderColor: '#2b313f', },
+            timeScale: { borderColor: '#2b313f', timeVisible: true, },
+        });
+
+        // 2. 建立 K 線圖圖層 (綠漲紅跌)
+        const candlestickSeries = chart.addCandlestickSeries({
+            upColor: '#00c087', downColor: '#ff4b4b', borderVisible: false,
+            wickUpColor: '#00c087', wickDownColor: '#ff4b4b',
+        });
+
+        // 定義近期的重大事件 (為了確保輕量化，我們抓取最近 1000 天的資料)
+        const events = [
+            { name: '以巴衝突', date: '2023-10-07' },
+            { name: 'BTC ETF 通過', date: '2024-01-10' },
+            { name: 'BTC 第四次減半', date: '2024-04-20' }
+        ];
+
+        let klineData = [];
+
+        // 3. 直接從幣安 (Binance) 免費 API 抓取最即時的真實資料 (不用透過 Python)
+        fetch('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1d&limit=1000')
+            .then(res => res.json())
+            .then(data => {
+                // 將幣安資料轉換為 TradingView 看得懂的格式
+                klineData = data.map(d => ({
+                    time: d[0] / 1000, // Unix 時間戳記
+                    open: parseFloat(d[1]),
+                    high: parseFloat(d[2]),
+                    low: parseFloat(d[3]),
+                    close: parseFloat(d[4])
+                }));
+
+                // 將資料餵給圖表
+                candlestickSeries.setData(klineData);
+                
+                // 更新右上角最新價格
+                const lastPrice = klineData[klineData.length - 1].close;
+                document.getElementById('current-price').innerText = '$' + lastPrice.toLocaleString();
+
+                // 4. 在圖表上標記「歷史事件」的小箭頭
+                const markers = events.map(event => {
+                    const eventTime = new Date(event.date).getTime() / 1000;
+                    return {
+                        time: eventTime,
+                        position: 'aboveBar',
+                        color: '#ff9800',
+                        shape: 'arrowDown',
+                        text: event.name,
+                        size: 2
+                    };
+                });
+                candlestickSeries.setMarkers(markers);
+            });
+
+        // 5. 製作「點擊瞬間跳轉」的功能 (UI/UX 的核心)
+        const buttonContainer = document.getElementById('event-buttons');
+        events.forEach(event => {
+            const btn = document.createElement('button');
+            btn.innerText = `對焦: ${event.name}`;
+            btn.onclick = () => jumpToEvent(event.date);
+            buttonContainer.appendChild(btn);
+        });
+
+        // 跳轉邏輯：直接算出該事件前後的日期，並讓圖表滑順對焦
+        function jumpToEvent(dateString) {
+            const targetTime = new Date(dateString).getTime() / 1000;
+            const days7 = 7 * 24 * 60 * 60;
+            const days23 = 23 * 24 * 60 * 60;
+            
+            chart.timeScale().setVisibleRange({
+                from: targetTime - days7,
+                to: targetTime + days23,
+            });
+        }
+
+        function resetZoom() {
+            chart.timeScale().fitContent();
+        }
+
+        // 確保手機或視窗改變大小時，圖表會自動完美適應
+        window.addEventListener('resize', () => {
+            chart.resize(window.innerWidth, window.innerHeight - 100);
+        });
+    </script>
+</body>
+</html>
