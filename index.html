@@ -27,7 +27,7 @@
         button.control-btn:active { background-color: #1e4bd8; border-color: #1e4bd8; }
         @media (hover: hover) { button.control-btn:hover { background-color: #2962ff; color: white; border-color: #2962ff; } }
 
-        #tvchart { width: 100vw; height: calc(100vh - 120px); }
+        /* Chart container now handles sizing */
 
         /* Modal Styles */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; opacity: 0; transition: opacity 0.3s ease; }
@@ -57,17 +57,12 @@
         /* Event Overlay Styles */
         .event-overlay {
             position: absolute;
-            top: 60px; /* Below header */
+            top: 0;
             bottom: 0;
             width: 200px; /* max width of card */
             pointer-events: none; /* Let clicks pass through to chart */
             display: none;
             z-index: 10;
-            /* Center line is at x=100px of this div */
-        }
-
-        .event-overlay.active {
-            display: block;
         }
 
         .event-overlay-line {
@@ -83,7 +78,7 @@
 
         .event-overlay-card {
             position: absolute;
-            top: 40px;
+            top: 10px; /* Start 10px from the top of the chart */
             background-color: rgba(30, 34, 45, 0.9);
             border: 1px solid #434651;
             border-radius: 8px;
@@ -91,11 +86,11 @@
             text-align: center;
             backdrop-filter: blur(4px);
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            /* Center the card relative to the line */
+            /* Initial centering */
             left: 50%;
             transform: translateX(-50%);
             min-width: 140px;
-            pointer-events: auto; /* Allow clicks on card if needed, or keep none */
+            pointer-events: auto; /* Allow clicks on card if needed */
             z-index: 10;
         }
 
@@ -172,16 +167,19 @@
         </div>
     </div>
     
-    <div id="tvchart"></div>
-
-    <div id="event-overlay" class="event-overlay">
-        <div class="event-overlay-line"></div>
-        <div class="event-overlay-card">
-            <div class="event-overlay-title" id="overlay-title"></div>
-            <div class="event-overlay-date" id="overlay-date"></div>
-            <div class="event-overlay-change" id="overlay-change"></div>
+    <div id="chart-container" style="position: relative; width: 100vw; height: calc(100vh - 120px);">
+        <div id="tvchart" style="width: 100%; height: 100%;"></div>
+        <div id="event-overlay" class="event-overlay">
+            <div class="event-overlay-line"></div>
+            <div class="event-overlay-card">
+                <div class="event-overlay-title" id="overlay-title"></div>
+                <div class="event-overlay-date" id="overlay-date"></div>
+                <div class="event-overlay-change" id="overlay-change"></div>
+            </div>
         </div>
     </div>
+
+
 
     <script>
         const isMobile = window.innerWidth < 600;
@@ -539,7 +537,9 @@
             const x = chart.timeScale().timeToCoordinate(currentEventTime);
 
             // Check if coordinate is valid and visible
-            const chartWidth = document.getElementById('tvchart').clientWidth;
+            const chartContainer = document.getElementById('chart-container');
+            const chartWidth = chartContainer.clientWidth;
+
             if (x === null || x < 0 || x > chartWidth) {
                 overlay.style.display = 'none';
                 return;
@@ -547,7 +547,34 @@
 
             // Show overlay and position it
             overlay.style.display = 'block';
-            overlay.style.left = `${x - 100}px`; // 100 is half of the 200px width of the overlay container
+
+            // The overlay container is 200px wide, centered on x by setting left: x - 100
+            overlay.style.left = `${x - 100}px`;
+
+            // Adjust the card within the overlay if it goes off-screen
+            const card = overlay.querySelector('.event-overlay-card');
+
+            // Reset to center first
+            card.style.left = '50%';
+            card.style.transform = 'translateX(-50%)';
+
+            // Calculate absolute position of the card's center
+            const cardRect = card.getBoundingClientRect();
+            const containerRect = chartContainer.getBoundingClientRect();
+
+            const cardLeftEdge = x - (cardRect.width / 2);
+            const cardRightEdge = x + (cardRect.width / 2);
+
+            // If the card is too close to the left edge of the screen
+            if (cardLeftEdge < 10) {
+                card.style.left = `${100 - x + 10}px`; // Shift right so it's 10px from the left edge of container
+                card.style.transform = 'translateX(0)';
+            }
+            // If the card is too close to the right edge of the screen
+            else if (cardRightEdge > chartWidth - 10) {
+                card.style.left = `${100 + (chartWidth - x) - 10}px`; // Shift left
+                card.style.transform = 'translateX(-100%)';
+            }
         }
 
         // Update overlay position on scroll/zoom
