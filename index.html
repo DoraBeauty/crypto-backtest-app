@@ -7,22 +7,27 @@
     <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
     <style>
         body { margin: 0; padding: 0; background-color: #131722; color: #d1d4dc; font-family: -apple-system, sans-serif; overflow: hidden; }
-        .header { padding: 15px 15px; background-color: #1e222d; border-bottom: 1px solid #2b313f; display: flex; flex-direction: column; gap: 12px; }
-        .header-top { display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 4px; }
-        @media (min-width: 600px) {
-            .header-top { flex-direction: row; justify-content: space-between; align-items: center; }
-        }
-        h1 { margin: 0; font-size: 22px; color: #fff; font-weight: 700; letter-spacing: 0.5px; }
-        .price-display { font-size: 28px; font-weight: 800; color: #00c087; line-height: 1.2; }
-        .error-text { color: #ff4b4b; font-size: 18px; font-weight: normal; }
+        .header { padding: 10px 15px; background-color: #1e222d; border-bottom: 1px solid #2b313f; display: flex; flex-direction: column; gap: 8px; }
+        .header-top { display: flex; justify-content: space-between; align-items: flex-start; }
+        .title-group { display: flex; flex-direction: column; gap: 4px; }
+        .symbol-tabs { display: flex; gap: 8px; }
+        .symbol-tab { background-color: #2b313f; color: #787b86; border: none; padding: 6px 12px; border-radius: 4px; font-size: 14px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .symbol-tab.active { background-color: #2962ff; color: #fff; }
 
-        .controls { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+        .price-group { display: flex; align-items: baseline; gap: 8px; margin-top: 4px; }
+        .price-display { font-size: 28px; font-weight: 800; color: #00c087; line-height: 1; }
+        .price-change { font-size: 16px; font-weight: 600; }
+        .price-change.up { color: #00c087; }
+        .price-change.down { color: #ff4b4b; }
+        .error-text { color: #ff4b4b; font-size: 16px; font-weight: normal; }
+
+        .controls { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
         .controls::-webkit-scrollbar { display: none; }
-        button { background-color: #2b313f; color: #e1e3e6; border: 1px solid #434651; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600; white-space: nowrap; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        button:active { background-color: #1e4bd8; border-color: #1e4bd8; transform: translateY(1px); box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
-        @media (hover: hover) { button:hover { background-color: #2962ff; color: white; border-color: #2962ff; } }
+        button.control-btn { background-color: #2b313f; color: #e1e3e6; border: 1px solid #434651; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; white-space: nowrap; transition: all 0.2s ease; }
+        button.control-btn:active { background-color: #1e4bd8; border-color: #1e4bd8; }
+        @media (hover: hover) { button.control-btn:hover { background-color: #2962ff; color: white; border-color: #2962ff; } }
 
-        #tvchart { width: 100vw; height: calc(100vh - 130px); }
+        #tvchart { width: 100vw; height: calc(100vh - 120px); }
 
         /* Modal Styles */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; opacity: 0; transition: opacity 0.3s ease; }
@@ -34,7 +39,7 @@
         .close-btn { background: transparent; border: none; color: #d1d4dc; font-size: 24px; cursor: pointer; padding: 0; margin: 0; box-shadow: none; line-height: 1; }
         .close-btn:hover { color: #fff; background: transparent; }
         .table-container { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0; }
-        
+
         table { width: 100%; border-collapse: collapse; text-align: right; font-size: 14px; }
         th, td { padding: 12px 15px; border-bottom: 1px solid #2b313f; white-space: nowrap; }
         th { background: #131722; color: #787b86; font-weight: normal; position: sticky; top: 0; z-index: 10; border-bottom: 2px solid #2b313f; }
@@ -44,21 +49,33 @@
         .down { color: #ff4b4b; }
         .event-date { font-size: 12px; color: #787b86; margin-top: 4px; }
         
-        #btn-report { background-color: #2962ff; border-color: #2962ff; color: white; }
+        /* Floating Action Button */
+        .fab { position: fixed; bottom: 20px; right: 20px; background-color: #2962ff; color: white; border: none; padding: 14px 20px; border-radius: 30px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(41,98,255,0.4); z-index: 50; transition: transform 0.2s, background-color 0.2s; display: flex; align-items: center; gap: 8px; }
+        .fab:hover { background-color: #1e4bd8; transform: scale(1.05); }
+        .fab:active { transform: scale(0.95); }
     </style>
 </head>
 <body>
 
     <div class="header">
         <div class="header-top">
-            <h1>📈 BTC/USDT 專業分析</h1>
-            <div class="price-display" id="current-price">載入中...</div>
+            <div class="title-group">
+                <div class="symbol-tabs">
+                    <button class="symbol-tab active" id="tab-BTCUSDT" onclick="switchSymbol('BTCUSDT')">BTC / USDT</button>
+                    <button class="symbol-tab" id="tab-ETHUSDT" onclick="switchSymbol('ETHUSDT')">ETH / USDT</button>
+                </div>
+                <div class="price-group">
+                    <div class="price-display" id="current-price">載入中...</div>
+                    <div class="price-change" id="price-change"></div>
+                </div>
+            </div>
         </div>
         <div class="controls" id="event-buttons">
-            <button onclick="resetZoom()">全貌視角</button>
-            <button id="btn-report" onclick="openModal()">📊 查看事件報表</button>
+            <button class="control-btn" onclick="resetZoom()">全貌視角</button>
         </div>
     </div>
+
+    <button class="fab" onclick="openModal()">📊 事件報表</button>
 
     <!-- Modal -->
     <div class="modal-overlay" id="reportModal" onclick="closeModal(event)">
@@ -104,6 +121,16 @@
             wickUpColor: '#00c087', wickDownColor: '#ff4b4b',
         });
 
+        const volumeSeries = chart.addHistogramSeries({
+            color: '#26a69a',
+            priceFormat: { type: 'volume' },
+            priceScaleId: '', // Set as an overlay
+        });
+        chart.priceScale('').applyOptions({ scaleMargins: { top: 0.8, bottom: 0 } });
+
+        const ma20Series = chart.addLineSeries({ color: '#2962FF', lineWidth: 1, title: 'MA20', crosshairMarkerVisible: false });
+        const ma60Series = chart.addLineSeries({ color: '#FF9800', lineWidth: 1, title: 'MA60', crosshairMarkerVisible: false });
+
         const events = [
             { name: 'CME 推出 BTC 期貨', date: '2017-12-17' },
             { name: '中美貿易戰爆發', date: '2018-03-22' },
@@ -129,10 +156,15 @@
         ];
 
         let klineData = [];
+        let currentSymbol = 'BTCUSDT';
 
         // 🟢 改用非同步函數來分批抓取所有的歷史資料 (突破 1000 天限制)
-        async function fetchAllData() {
+        async function fetchAllData(symbol) {
             try {
+                // Reset UI
+                document.getElementById('current-price').innerText = '載入中...';
+                document.getElementById('price-change').innerText = '';
+
                 let allData = [];
                 let endTime = Date.now();
                 // 幣安 BTCUSDT 大約從 2017 年 8 月開始有資料 (1501545600000)
@@ -140,7 +172,7 @@
 
                 // 為了避免載入太久，這裡我們最多抓取 5 次 (大約 5000 天, 足夠涵蓋到 2017)
                 for (let i = 0; i < 5; i++) {
-                    const res = await fetch(`https://data-api.binance.vision/api/v3/klines?symbol=BTCUSDT&interval=1d&limit=1000&endTime=${endTime}`);
+                    const res = await fetch(`https://data-api.binance.vision/api/v3/klines?symbol=${symbol}&interval=1d&limit=1000&endTime=${endTime}`);
                     if (!res.ok) throw new Error('無法連線到交易所伺服器');
                     const data = await res.json();
 
@@ -159,12 +191,16 @@
                 // 過濾掉重複或時間錯誤的資料 (確保時間唯一且遞增)
                 const uniqueDataMap = new Map();
                 allData.forEach(d => {
+                    const close = parseFloat(d[4]);
+                    const open = parseFloat(d[1]);
                     uniqueDataMap.set(d[0], {
                         time: d[0] / 1000,
-                        open: parseFloat(d[1]),
+                        open: open,
                         high: parseFloat(d[2]),
                         low: parseFloat(d[3]),
-                        close: parseFloat(d[4])
+                        close: close,
+                        value: parseFloat(d[5]), // Volume
+                        color: close >= open ? 'rgba(0, 192, 135, 0.4)' : 'rgba(255, 75, 75, 0.4)'
                     });
                 });
 
@@ -172,9 +208,42 @@
 
                 candlestickSeries.setData(klineData);
                 
-                const lastPrice = klineData[klineData.length - 1].close;
-                document.getElementById('current-price').innerText = '$' + lastPrice.toLocaleString();
+                // Set Volume Data
+                const volumeData = klineData.map(d => ({ time: d.time, value: d.value, color: d.color }));
+                volumeSeries.setData(volumeData);
+
+                // Calculate and Set MA Data
+                const calculateMA = (data, period) => {
+                    const result = [];
+                    for (let i = 0; i < data.length; i++) {
+                        if (i < period - 1) continue;
+                        let sum = 0;
+                        for (let j = 0; j < period; j++) {
+                            sum += data[i - j].close;
+                        }
+                        result.push({ time: data[i].time, value: sum / period });
+                    }
+                    return result;
+                };
+
+                ma20Series.setData(calculateMA(klineData, 20));
+                ma60Series.setData(calculateMA(klineData, 60));
+
+                const lastCandle = klineData[klineData.length - 1];
+                const prevCandle = klineData[klineData.length - 2];
+                const lastPrice = lastCandle.close;
+                const prevClose = prevCandle ? prevCandle.close : lastCandle.open;
+
+                const changeVal = lastPrice - prevClose;
+                const changePct = ((changeVal / prevClose) * 100).toFixed(2);
+                const isUp = changeVal >= 0;
+
+                document.getElementById('current-price').innerText = '$' + lastPrice.toLocaleString(undefined, {maximumFractionDigits:2});
                 document.getElementById('current-price').classList.remove('error-text');
+
+                const changeEl = document.getElementById('price-change');
+                changeEl.innerText = `${isUp ? '+' : ''}${changePct}%`;
+                changeEl.className = 'price-change ' + (isUp ? 'up' : 'down');
 
                 const markers = events.map(event => {
                     const eventTime = new Date(event.date).getTime() / 1000;
@@ -274,6 +343,19 @@
             }
         }
 
+        // Asset Switching Logic
+        function switchSymbol(symbol) {
+            if (currentSymbol === symbol) return;
+            currentSymbol = symbol;
+
+            // Update tabs UI
+            document.querySelectorAll('.symbol-tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(`tab-${symbol}`).classList.add('active');
+
+            // Re-fetch data
+            fetchAllData(symbol);
+        }
+
         // Modal Functions
         function openModal() {
             document.getElementById('reportModal').classList.add('active');
@@ -286,11 +368,12 @@
         }
 
         // 執行抓取
-        fetchAllData();
+        fetchAllData(currentSymbol);
 
         const buttonContainer = document.getElementById('event-buttons');
         events.forEach(event => {
             const btn = document.createElement('button');
+            btn.className = 'control-btn';
             btn.innerText = `對焦: ${event.name}`;
             btn.onclick = () => jumpToEvent(event.date);
             buttonContainer.appendChild(btn);
