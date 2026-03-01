@@ -10,9 +10,13 @@
         .header { padding: 10px 15px; background-color: #1e222d; border-bottom: 1px solid #2b313f; display: flex; flex-direction: column; gap: 8px; }
         .header-top { display: flex; justify-content: space-between; align-items: flex-start; }
         .title-group { display: flex; flex-direction: column; gap: 4px; }
-        .symbol-tabs { display: flex; gap: 8px; }
+        .symbol-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
         .symbol-tab { background-color: #2b313f; color: #787b86; border: none; padding: 6px 12px; border-radius: 4px; font-size: 14px; font-weight: bold; cursor: pointer; transition: 0.2s; }
         .symbol-tab.active { background-color: #2962ff; color: #fff; }
+
+        .interval-tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+        .interval-tab { background-color: transparent; color: #787b86; border: 1px solid #434651; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .interval-tab.active { background-color: #2b313f; color: #d1d4dc; border-color: #2962ff; }
 
         .price-group { display: flex; align-items: baseline; gap: 8px; margin-top: 4px; }
         .price-display { font-size: 28px; font-weight: 800; color: #00c087; line-height: 1; }
@@ -109,9 +113,20 @@
 
         .event-overlay-change {
             font-size: 13px;
+            margin-bottom: 2px;
         }
         .event-overlay-change.up { color: #00c087; }
         .event-overlay-change.down { color: #ff4b4b; }
+
+        .event-overlay-candle-stats {
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid #434651;
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
     </style>
 </head>
 <body>
@@ -122,6 +137,13 @@
                 <div class="symbol-tabs">
                     <button class="symbol-tab active" id="tab-BTCUSDT" onclick="switchSymbol('BTCUSDT')">BTC / USDT</button>
                     <button class="symbol-tab" id="tab-ETHUSDT" onclick="switchSymbol('ETHUSDT')">ETH / USDT</button>
+                </div>
+                <div class="interval-tabs">
+                    <button class="interval-tab" id="interval-15m" onclick="switchInterval('15m')">15分</button>
+                    <button class="interval-tab" id="interval-1h" onclick="switchInterval('1h')">1小時</button>
+                    <button class="interval-tab" id="interval-4h" onclick="switchInterval('4h')">4小時</button>
+                    <button class="interval-tab active" id="interval-1d" onclick="switchInterval('1d')">日線</button>
+                    <button class="interval-tab" id="interval-1w" onclick="switchInterval('1w')">週線</button>
                 </div>
                 <div class="price-group">
                     <div class="price-display" id="current-price">載入中...</div>
@@ -155,12 +177,13 @@
                         <tr>
                             <th>事件 / 日期</th>
                             <th>當下價格</th>
+                            <th>當根K棒變化</th>
                             <th>一個月後變化</th>
                             <th>三個月後變化</th>
                         </tr>
                     </thead>
                     <tbody id="report-table-body">
-                        <tr><td colspan="4" style="text-align:center;">資料運算中...</td></tr>
+                        <tr><td colspan="5" style="text-align:center;">資料運算中...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -175,6 +198,7 @@
                 <div class="event-overlay-title" id="overlay-title"></div>
                 <div class="event-overlay-date" id="overlay-date"></div>
                 <div class="event-overlay-change" id="overlay-change"></div>
+                <div class="event-overlay-candle-stats" id="overlay-candle-stats"></div>
             </div>
         </div>
     </div>
@@ -235,36 +259,100 @@
         const categories = [...new Set(events.map(e => e.category))];
 
         let klineData = [];
+        let dailyKlineDataCache = {}; // Cache for 1d data across symbols for the report table
         let currentSymbol = 'BTCUSDT';
+        let currentInterval = '1d';
+
+        // 🟢 背景抓取日線資料 (供報表和長線統計使用)
+        async function fetchDailyDataBackground(symbol) {
+            if (dailyKlineDataCache[symbol]) return dailyKlineDataCache[symbol];
+
+            try {
+                let allData = [];
+                let endTime = Date.now();
+                const startTimeLimit = 1501545600000;
+
+                for (let i = 0; i < 5; i++) {
+                    const res = await fetch(`https://data-api.binance.vision/api/v3/klines?symbol=${symbol}&interval=1d&limit=1000&endTime=${endTime}`);
+                    if (!res.ok) throw new Error('無法連線到交易所伺服器 (背景)');
+                    const data = await res.json();
+
+                    if (data.length === 0) break;
+                    allData = data.concat(allData);
+                    endTime = data[0][0] - 1;
+                    if (endTime < startTimeLimit) break;
+                }
+
+                const uniqueDataMap = new Map();
+                allData.forEach(d => {
+                    const close = parseFloat(d[4]);
+                    const open = parseFloat(d[1]);
+                    uniqueDataMap.set(d[0], {
+                        time: d[0] / 1000,
+                        open: open,
+                        high: parseFloat(d[2]),
+                        low: parseFloat(d[3]),
+                        close: close,
+                        value: parseFloat(d[5]), // Volume
+                        color: close >= open ? 'rgba(0, 192, 135, 0.4)' : 'rgba(255, 75, 75, 0.4)'
+                    });
+                });
+
+                const processedData = Array.from(uniqueDataMap.values()).sort((a, b) => a.time - b.time);
+                dailyKlineDataCache[symbol] = processedData;
+                return processedData;
+            } catch (err) {
+                console.error("背景抓取日線資料失敗:", err);
+                return null;
+            }
+        }
 
         // 🟢 改用非同步函數來分批抓取所有的歷史資料 (突破 1000 天限制)
-        async function fetchAllData(symbol) {
+        async function fetchAllData(symbol, interval = '1d', focusTimeMs = null) {
             try {
                 // Reset UI
                 document.getElementById('current-price').innerText = '載入中...';
                 document.getElementById('price-change').innerText = '';
 
+
+                // 開始背景獲取日線資料供報表使用
+                const dailyDataPromise = fetchDailyDataBackground(symbol);
+
                 let allData = [];
-                let endTime = Date.now();
-                // 幣安 BTCUSDT 大約從 2017 年 8 月開始有資料 (1501545600000)
-                const startTimeLimit = 1501545600000;
 
-                // 為了避免載入太久，這裡我們最多抓取 5 次 (大約 5000 天, 足夠涵蓋到 2017)
-                for (let i = 0; i < 5; i++) {
-                    const res = await fetch(`https://data-api.binance.vision/api/v3/klines?symbol=${symbol}&interval=1d&limit=1000&endTime=${endTime}`);
-                    if (!res.ok) throw new Error('無法連線到交易所伺服器');
-                    const data = await res.json();
+                // 如果是日線或週線，抓取長線資料；如果是小時線等小級別，只抓取部分資料以防卡頓
+                if (interval === '1d' || interval === '1w') {
+                    let endTime = Date.now();
+                    const startTimeLimit = 1501545600000;
 
-                    if (data.length === 0) break;
+                    for (let i = 0; i < 5; i++) {
+                        const res = await fetch(`https://data-api.binance.vision/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=1000&endTime=${endTime}`);
+                        if (!res.ok) throw new Error('無法連線到交易所伺服器');
+                        const data = await res.json();
 
-                    // 幣安回傳的資料是按時間遞增的，我們把它加到前面
-                    allData = data.concat(allData);
+                        if (data.length === 0) break;
+                        allData = data.concat(allData);
+                        endTime = data[0][0] - 1;
+                        if (endTime < startTimeLimit) break;
+                    }
+                } else {
+                    // 對於小級別 (1h, 4h, 15m)
+                    if (focusTimeMs) {
+                        // 如果有指定聚焦時間，抓取該時間前後的資料
+                        // 假設往前抓 500 根，往後抓 500 根
+                        const intervalMs = { '15m': 15 * 60 * 1000, '1h': 60 * 60 * 1000, '4h': 4 * 60 * 60 * 1000 }[interval];
+                        const startTime = focusTimeMs - (500 * intervalMs);
+                        const endTime = focusTimeMs + (500 * intervalMs);
 
-                    // 下一次抓取的 endTime 是這批資料的第一筆時間減 1 毫秒
-                    endTime = data[0][0] - 1;
-
-                    // 如果已經抓到 2017 年之前，就停止
-                    if (endTime < startTimeLimit) break;
+                        const res = await fetch(`https://data-api.binance.vision/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=1000&startTime=${startTime}&endTime=${endTime}`);
+                        if (!res.ok) throw new Error('無法連線到交易所伺服器');
+                        allData = await res.json();
+                    } else {
+                        // 否則只抓取最近的 1000 根
+                        const res = await fetch(`https://data-api.binance.vision/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=1000`);
+                        if (!res.ok) throw new Error('無法連線到交易所伺服器');
+                        allData = await res.json();
+                    }
                 }
 
                 // 過濾掉重複或時間錯誤的資料 (確保時間唯一且遞增)
@@ -333,12 +421,15 @@
                 });
                 candlestickSeries.setMarkers(markers);
 
-                // 產生報表
-                generateReport(klineData);
-
-                // 更新分類統計 (使用目前選取的分類)
-                const currentCategory = document.getElementById('event-category-select').value;
-                updateCategoryStats(currentCategory);
+                // 確保日線資料已取得，然後產生報表和統計
+                const dailyData = await dailyDataPromise;
+                if (dailyData) {
+                    generateReport(dailyData);
+                    updateCategoryStats(document.getElementById('event-category-select').value, dailyData);
+                } else {
+                    generateReport(klineData);
+                    updateCategoryStats(document.getElementById('event-category-select').value, klineData);
+                }
 
                 // Set visible logical range to the last ~90 days for better readability
                 const totalBars = klineData.length;
@@ -381,9 +472,46 @@
             return closest;
         }
 
-        function generateReport(data) {
+        // 為了報表能正確顯示每個事件在「當前選擇級別」的瞬間變化，如果資料不在目前的 klineData 中，我們需要在背景偷偷單獨抓那根 K 棒。
+        async function fetchSingleCandle(symbol, interval, targetTimeMs) {
+            try {
+                // 因為要抓包含目標時間的那根 K 棒，我們把時間區間縮小到目標前後
+                const intervalMs = { '15m': 15 * 60 * 1000, '1h': 60 * 60 * 1000, '4h': 4 * 60 * 60 * 1000, '1d': 24 * 60 * 60 * 1000, '1w': 7 * 24 * 60 * 60 * 1000 }[interval];
+                const startTime = targetTimeMs - intervalMs;
+                const endTime = targetTimeMs + intervalMs;
+
+                const res = await fetch(`https://data-api.binance.vision/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=5&startTime=${startTime}&endTime=${endTime}`);
+                if (!res.ok) return null;
+                const data = await res.json();
+
+                if (data.length === 0) return null;
+
+                // 找到最接近的那根
+                let closest = data[0];
+                let minDiff = Infinity;
+                for (let d of data) {
+                    const diff = Math.abs(d[0] - targetTimeMs);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        closest = d;
+                    }
+                }
+
+                return {
+                    time: closest[0] / 1000,
+                    open: parseFloat(closest[1]),
+                    high: parseFloat(closest[2]),
+                    low: parseFloat(closest[3]),
+                    close: parseFloat(closest[4])
+                };
+            } catch (err) {
+                return null;
+            }
+        }
+
+        async function generateReport(dailyData) {
             const tbody = document.getElementById('report-table-body');
-            tbody.innerHTML = '';
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">資料處理中...</td></tr>';
 
             const formatChange = (oldPrice, newPrice) => {
                 if (!newPrice) return '<span style="color:#787b86">-</span>';
@@ -395,34 +523,72 @@
                 return `<span class="${cls}">${sign}$${Math.abs(diff).toLocaleString(undefined, {maximumFractionDigits:0})} (${sign}${percent}%)<br><span style="font-size:11px;color:#787b86">-> $${newPrice.toLocaleString(undefined, {maximumFractionDigits:0})}</span></span>`;
             };
 
-            events.forEach(event => {
+            let rowsHTML = '';
+
+            // 使用 Promise.all 平行處理每個事件
+            const rowPromises = events.map(async (event) => {
                 const eventTime = new Date(event.date).getTime() / 1000;
+                const eventTimeMs = eventTime * 1000;
 
-                // 找當下價格
-                const currentData = findPriceAfterDays(data, eventTime, 0);
-                if (!currentData) return;
+                // 找 30 天與 90 天後的價格 (永遠用日線計算長線變化)
+                const day30Data = findPriceAfterDays(dailyData, eventTime, 30);
+                const day90Data = findPriceAfterDays(dailyData, eventTime, 90);
 
-                const currentPrice = currentData.close;
+                // 為了「當根K棒變化」，我們需要目前所選的級別的該根K棒
+                // 先在目前載入的圖表資料裡找找看 (近期的事件可能已經在裡面了)
+                let currentCandleData = findPriceAfterDays(klineData, eventTime, 0);
 
-                // 找 30 天與 90 天後的價格
-                const day30Data = findPriceAfterDays(data, eventTime, 30);
-                const day90Data = findPriceAfterDays(data, eventTime, 90);
+                // 如果圖表裡找不到，而且也不是日線，我們就去交易所單獨調這根K棒的資料
+                // 用 86400 (一天) 當作差距容忍度，如果是更小的級別差距應該更小
+                const isCandleValid = currentCandleData && Math.abs(currentCandleData.time - eventTime) <= 86400;
 
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>
-                        <div style="font-weight:bold;color:#d1d4dc">${event.name}</div>
-                        <div class="event-date">${event.date}</div>
-                    </td>
-                    <td style="font-weight:bold;color:#fff">$${currentPrice.toLocaleString(undefined, {maximumFractionDigits:0})}</td>
-                    <td>${day30Data ? formatChange(currentPrice, day30Data.close) : '<span style="color:#787b86">時間未到</span>'}</td>
-                    <td>${day90Data ? formatChange(currentPrice, day90Data.close) : '<span style="color:#787b86">時間未到</span>'}</td>
+                if (!isCandleValid) {
+                    currentCandleData = await fetchSingleCandle(currentSymbol, currentInterval, eventTimeMs);
+                }
+
+                // 如果真的連單獨調都調不到 (例如交易所還沒開)，退回使用日線歷史資料
+                if (!currentCandleData) {
+                    currentCandleData = findPriceAfterDays(dailyData, eventTime, 0);
+                }
+
+                if (!currentCandleData) return '';
+
+                const currentPrice = currentCandleData.close;
+
+                // 計算當根K棒變化
+                const amplitude = ((currentCandleData.high - currentCandleData.low) / currentCandleData.low) * 100;
+                const candleChange = currentCandleData.close - currentCandleData.open;
+                const candlePercent = (candleChange / currentCandleData.open) * 100;
+                const isCandleUp = candleChange >= 0;
+                const candleSign = isCandleUp ? '+' : '';
+                const candleColor = isCandleUp ? '#00c087' : '#ff4b4b';
+
+                const candleStatsHTML = `
+                    <span style="color: ${candleColor}">${candleSign}${candlePercent.toFixed(2)}%</span><br>
+                    <span style="font-size:11px;color:#787b86">振幅: ${amplitude.toFixed(2)}%</span>
                 `;
-                tbody.appendChild(tr);
+
+                return `
+                    <tr>
+                        <td>
+                            <div style="font-weight:bold;color:#d1d4dc">${event.name}</div>
+                            <div class="event-date">${event.date}</div>
+                        </td>
+                        <td style="font-weight:bold;color:#fff">$${currentPrice.toLocaleString(undefined, {maximumFractionDigits:0})}</td>
+                        <td>${candleStatsHTML}</td>
+                        <td>${day30Data ? formatChange(currentPrice, day30Data.close) : '<span style="color:#787b86">時間未到</span>'}</td>
+                        <td>${day90Data ? formatChange(currentPrice, day90Data.close) : '<span style="color:#787b86">時間未到</span>'}</td>
+                    </tr>
+                `;
             });
 
-            if (tbody.innerHTML === '') {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">無可用資料</td></tr>';
+            const results = await Promise.all(rowPromises);
+            rowsHTML = results.join('');
+
+            if (rowsHTML === '') {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">無可用資料</td></tr>';
+            } else {
+                tbody.innerHTML = rowsHTML;
             }
         }
 
@@ -436,7 +602,24 @@
             document.getElementById(`tab-${symbol}`).classList.add('active');
 
             // Re-fetch data
-            fetchAllData(symbol);
+            fetchAllData(symbol, currentInterval);
+        }
+
+        // Interval Switching Logic
+        function switchInterval(interval) {
+            if (currentInterval === interval) return;
+            currentInterval = interval;
+
+            // Update interval tabs UI
+            document.querySelectorAll('.interval-tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(`interval-${interval}`).classList.add('active');
+
+            // 隱藏事件卡片並重置選擇
+            document.getElementById('event-overlay').classList.remove('active');
+            currentEventTime = null;
+
+            // Re-fetch data. Focus time is null so we get the most recent for smaller timeframes.
+            fetchAllData(currentSymbol, currentInterval);
         }
 
         // Modal Functions
@@ -522,7 +705,7 @@
         renderEventButtons('all');
 
         // 執行抓取
-        fetchAllData(currentSymbol);
+        fetchAllData(currentSymbol, currentInterval);
 
         let currentEventTime = null; // Track currently focused event time
 
@@ -582,24 +765,50 @@
             updateOverlayPosition();
         });
 
-        function jumpToEvent(dateString) {
+        async function jumpToEvent(dateString) {
             const event = events.find(e => e.date === dateString);
             if (!event) return;
 
             const targetTime = new Date(dateString).getTime() / 1000;
-            const days7 = 7 * 24 * 60 * 60;
-            const days23 = 23 * 24 * 60 * 60;
 
-            // Set chart range
-            chart.timeScale().setVisibleRange({ from: targetTime - days7, to: targetTime + days23 });
+            // 如果當前是小級別 (不是 1d 或 1w)，檢查目標時間是否在當前載入的資料範圍內
+            if (currentInterval !== '1d' && currentInterval !== '1w') {
+                const hasDataForEvent = klineData.length > 0 &&
+                                        targetTime >= klineData[0].time &&
+                                        targetTime <= klineData[klineData.length - 1].time;
+
+                // 如果沒有資料，觸發重新抓取並聚焦
+                if (!hasDataForEvent) {
+                    await fetchAllData(currentSymbol, currentInterval, targetTime * 1000);
+                }
+            }
+
+            // Set chart range based on interval
+            let visibleBefore = 7 * 24 * 60 * 60;
+            let visibleAfter = 23 * 24 * 60 * 60;
+
+            if (currentInterval === '15m') {
+                visibleBefore = 12 * 60 * 60; // 12 hours
+                visibleAfter = 24 * 60 * 60;  // 24 hours
+            } else if (currentInterval === '1h') {
+                visibleBefore = 2 * 24 * 60 * 60; // 2 days
+                visibleAfter = 5 * 24 * 60 * 60;  // 5 days
+            } else if (currentInterval === '4h') {
+                visibleBefore = 4 * 24 * 60 * 60; // 4 days
+                visibleAfter = 10 * 24 * 60 * 60; // 10 days
+            }
+
+            chart.timeScale().setVisibleRange({ from: targetTime - visibleBefore, to: targetTime + visibleAfter });
 
             // Show Overlay
             const currentData = findPriceAfterDays(klineData, targetTime, 0);
-            const day30Data = findPriceAfterDays(klineData, targetTime, 30);
+            const dailyData = dailyKlineDataCache[currentSymbol] || klineData;
+            const day30Data = findPriceAfterDays(dailyData, targetTime, 30);
 
             const titleEl = document.getElementById('overlay-title');
             const dateEl = document.getElementById('overlay-date');
             const changeEl = document.getElementById('overlay-change');
+            const statsEl = document.getElementById('overlay-candle-stats');
 
             titleEl.innerText = event.name;
             dateEl.innerText = event.date;
@@ -615,6 +824,27 @@
                 changeEl.className = 'event-overlay-change';
                 changeEl.innerText = '30天後: 無資料';
                 changeEl.style.color = '#787b86';
+            }
+
+            if (currentData) {
+                // 當根K棒振幅 (高-低)/低 * 100
+                const amplitude = ((currentData.high - currentData.low) / currentData.low) * 100;
+                // 當根K棒漲跌 (收-開)/開 * 100
+                const candleChange = currentData.close - currentData.open;
+                const candlePercent = (candleChange / currentData.open) * 100;
+                const isCandleUp = candleChange >= 0;
+                const candleSign = isCandleUp ? '+' : '';
+                const candleColor = isCandleUp ? '#00c087' : '#ff4b4b';
+
+                statsEl.innerHTML = `
+                    <div style="color: #787b86;">當根K線 (${currentInterval})</div>
+                    <div>收盤: $${currentData.close.toLocaleString(undefined, {maximumFractionDigits:0})}</div>
+                    <div>漲跌: <span style="color: ${candleColor}">${candleSign}${candlePercent.toFixed(2)}%</span></div>
+                    <div>振幅: ${amplitude.toFixed(2)}%</div>
+                `;
+                statsEl.style.display = 'flex';
+            } else {
+                statsEl.style.display = 'none';
             }
 
             currentEventTime = targetTime;
