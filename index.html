@@ -134,6 +134,12 @@
                 </div>
             </div>
         </div>
+        <div class="controls" style="border-bottom: 1px solid #2b3139; padding-bottom: 5px;">
+            <select id="event-category-select" style="background-color: #2b3139; color: #d1d4dc; border: 1px solid #434651; padding: 6px 10px; border-radius: 4px; outline: none; font-size: 14px; cursor: pointer; margin-right: 10px;">
+                <option value="all">所有事件</option>
+            </select>
+            <span id="category-stats" style="color: #787b86; font-size: 13px;"></span>
+        </div>
         <div class="controls" id="event-buttons">
             <button class="control-btn" onclick="resetZoom()">全貌視角</button>
         </div>
@@ -205,28 +211,30 @@
         const ma60Series = chart.addLineSeries({ color: '#FF9800', lineWidth: 1, title: 'MA60', crosshairMarkerVisible: false });
 
         const events = [
-            { name: 'CME 推出 BTC 期貨', date: '2017-12-17' },
-            { name: '中美貿易戰爆發', date: '2018-03-22' },
-            { name: 'BCH 硬分叉算力大戰', date: '2018-11-15' },
-            { name: 'COVID-19 疫情大跌', date: '2020-03-12' },
-            { name: 'BTC 第三次減半', date: '2020-05-11' },
-            { name: 'MicroStrategy 首次買入', date: '2020-08-11' },
-            { name: 'Tesla 買入 BTC', date: '2021-02-08' },
-            { name: 'Coinbase IPO', date: '2021-04-14' },
-            { name: '中國全面封殺挖礦 (519)', date: '2021-05-19' },
-            { name: '薩爾瓦多列為法幣', date: '2021-09-07' },
-            { name: 'BTC 歷史高點 (69k)', date: '2021-11-10' },
-            { name: '聯準會首次升息', date: '2022-03-16' },
-            { name: 'Terra/Luna 崩盤', date: '2022-05-09' },
-            { name: 'FTX 破產', date: '2022-11-11' },
-            { name: '矽谷銀行倒閉', date: '2023-03-10' },
-            { name: '貝萊德申請 ETF', date: '2023-06-15' },
-            { name: '以巴衝突', date: '2023-10-07' },
-            { name: 'BTC 現貨 ETF 通過', date: '2024-01-10' },
-            { name: 'BTC 突破前高(69k)', date: '2024-03-05' },
-            { name: 'BTC 第四次減半', date: '2024-04-20' },
-            { name: '聯準會降息兩碼', date: '2024-09-18' }
+            { name: 'CME 推出 BTC 期貨', date: '2017-12-17', category: '機構與法規' },
+            { name: '中美貿易戰爆發', date: '2018-03-22', category: '總體經濟' },
+            { name: 'BCH 硬分叉算力大戰', date: '2018-11-15', category: '加密貨幣內部' },
+            { name: 'COVID-19 疫情大跌', date: '2020-03-12', category: '總體經濟' },
+            { name: 'BTC 第三次減半', date: '2020-05-11', category: '加密貨幣內部' },
+            { name: 'MicroStrategy 首次買入', date: '2020-08-11', category: '機構與法規' },
+            { name: 'Tesla 買入 BTC', date: '2021-02-08', category: '機構與法規' },
+            { name: 'Coinbase IPO', date: '2021-04-14', category: '機構與法規' },
+            { name: '中國全面封殺挖礦 (519)', date: '2021-05-19', category: '機構與法規' },
+            { name: '薩爾瓦多列為法幣', date: '2021-09-07', category: '機構與法規' },
+            { name: 'BTC 歷史高點 (69k)', date: '2021-11-10', category: '加密貨幣內部' },
+            { name: '聯準會首次升息', date: '2022-03-16', category: '總體經濟' },
+            { name: 'Terra/Luna 崩盤', date: '2022-05-09', category: '加密貨幣內部' },
+            { name: 'FTX 破產', date: '2022-11-11', category: '機構與法規' },
+            { name: '矽谷銀行倒閉', date: '2023-03-10', category: '總體經濟' },
+            { name: '貝萊德申請 ETF', date: '2023-06-15', category: '機構與法規' },
+            { name: '以巴衝突', date: '2023-10-07', category: '總體經濟' },
+            { name: 'BTC 現貨 ETF 通過', date: '2024-01-10', category: '機構與法規' },
+            { name: 'BTC 突破前高(69k)', date: '2024-03-05', category: '加密貨幣內部' },
+            { name: 'BTC 第四次減半', date: '2024-04-20', category: '加密貨幣內部' },
+            { name: '聯準會降息兩碼', date: '2024-09-18', category: '總體經濟' }
         ];
+
+        const categories = [...new Set(events.map(e => e.category))];
 
         let klineData = [];
         let currentSymbol = 'BTCUSDT';
@@ -329,6 +337,10 @@
 
                 // 產生報表
                 generateReport(klineData);
+
+                // 更新分類統計 (使用目前選取的分類)
+                const currentCategory = document.getElementById('event-category-select').value;
+                updateCategoryStats(currentCategory);
 
                 // Set visible logical range to the last ~90 days for better readability
                 const totalBars = klineData.length;
@@ -440,17 +452,79 @@
             document.getElementById('reportModal').classList.remove('active');
         }
 
-        // 執行抓取
-        fetchAllData(currentSymbol);
+        // Populate Categories Dropdown
+        const categorySelect = document.getElementById('event-category-select');
+        categories.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat;
+            option.innerText = cat;
+            categorySelect.appendChild(option);
+        });
 
         const buttonContainer = document.getElementById('event-buttons');
-        events.forEach(event => {
-            const btn = document.createElement('button');
-            btn.className = 'control-btn';
-            btn.innerText = `對焦: ${event.name}`;
-            btn.onclick = () => jumpToEvent(event.date);
-            buttonContainer.appendChild(btn);
+
+        function renderEventButtons(categoryFilter = 'all') {
+            // Keep the "全貌視角" button
+            buttonContainer.innerHTML = '<button class="control-btn" onclick="resetZoom()">全貌視角</button>';
+
+            const filteredEvents = categoryFilter === 'all' ? events : events.filter(e => e.category === categoryFilter);
+
+            filteredEvents.forEach(event => {
+                const btn = document.createElement('button');
+                btn.className = 'control-btn';
+                btn.innerText = `對焦: ${event.name}`;
+                btn.onclick = () => jumpToEvent(event.date);
+                buttonContainer.appendChild(btn);
+            });
+        }
+
+        categorySelect.addEventListener('change', (e) => {
+            renderEventButtons(e.target.value);
+            updateCategoryStats(e.target.value);
         });
+
+        function updateCategoryStats(categoryFilter = 'all') {
+            const statsEl = document.getElementById('category-stats');
+            if (klineData.length === 0) {
+                statsEl.innerText = '';
+                return;
+            }
+
+            const filteredEvents = categoryFilter === 'all' ? events : events.filter(e => e.category === categoryFilter);
+
+            let upCount = 0;
+            let downCount = 0;
+            let totalEvaluated = 0;
+
+            filteredEvents.forEach(event => {
+                const targetTime = new Date(event.date).getTime() / 1000;
+                const currentData = findPriceAfterDays(klineData, targetTime, 0);
+                const day30Data = findPriceAfterDays(klineData, targetTime, 30);
+
+                if (currentData && day30Data) {
+                    totalEvaluated++;
+                    if (day30Data.close >= currentData.close) {
+                        upCount++;
+                    } else {
+                        downCount++;
+                    }
+                }
+            });
+
+            if (totalEvaluated > 0) {
+                const upProb = ((upCount / totalEvaluated) * 100).toFixed(0);
+                const downProb = ((downCount / totalEvaluated) * 100).toFixed(0);
+                statsEl.innerHTML = ` ( 30天後統計: <span style="color:#00c087">上漲 ${upProb}%</span> / <span style="color:#ff4b4b">下跌 ${downProb}%</span> )`;
+            } else {
+                statsEl.innerHTML = ` ( 30天後統計: 尚無完整資料 )`;
+            }
+        }
+
+        // Initial Render
+        renderEventButtons('all');
+
+        // 執行抓取
+        fetchAllData(currentSymbol);
 
         let currentEventTime = null; // Track currently focused event time
 
