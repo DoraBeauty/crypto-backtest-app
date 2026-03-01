@@ -286,7 +286,7 @@
             </div>
             <div id="prediction-summary" style="padding: 10px 20px; border-bottom: 1px solid #2b313f; background: #1a1e26;">
                 <h3 style="margin: 0 0 8px 0; font-size: 14px; color: #d1d4dc; display: flex; justify-content: space-between; align-items: center;">
-                    <span>💡 歷史回測統計 (平均漲跌幅)</span>
+                    <span>💡 歷史回測統計 (點擊分類查看明細)</span>
                 </h3>
                 <div style="overflow-x: auto;">
                     <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: right; white-space: nowrap;">
@@ -307,18 +307,28 @@
                     </table>
                 </div>
             </div>
-            <div class="table-container">
+        </div>
+    </div>
+
+    <!-- SubCategory Modal -->
+    <div class="modal-overlay" id="subCategoryModal" onclick="if(event.target===this) closeSubCategoryModal()">
+        <div class="modal-content" style="max-height: 80vh;" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2 id="subCategoryTitle">📊 分類明細</h2>
+                <button class="close-btn" onclick="closeSubCategoryModal()">&times;</button>
+            </div>
+            <div class="table-container" style="max-height: 60vh; overflow-y: auto;">
                 <table>
                     <thead>
                         <tr>
                             <th>事件 / 日期</th>
-                            <th>當下價格</th>
-                            <th>當根K棒變化</th>
-                            <th>一個月後變化</th>
-                            <th>三個月後變化</th>
+                            <th style="text-align: right;">當下價格</th>
+                            <th style="text-align: right;">當根K棒變化</th>
+                            <th style="text-align: right;">一個月後變化</th>
+                            <th style="text-align: right;">三個月後變化</th>
                         </tr>
                     </thead>
-                    <tbody id="report-table-body">
+                    <tbody id="subCategoryTableBody">
                         <tr><td colspan="5" style="text-align:center;">資料運算中...</td></tr>
                     </tbody>
                 </table>
@@ -378,27 +388,38 @@
         const ma60Series = chart.addLineSeries({ color: '#FF9800', lineWidth: 1, title: 'MA60', crosshairMarkerVisible: false });
 
         const events = [
-            { name: 'CME 推出 BTC 期貨', date: '2017-12-17', category: '機構與法規', subCategory: '衍生品/ETF' },
+            // Macro / Policy (總體經濟/政策)
             { name: '中美貿易戰爆發', date: '2018-03-22', category: '總體經濟', subCategory: '戰爭/衝突' },
-            { name: 'BCH 硬分叉算力大戰', date: '2018-11-15', category: '加密貨幣內部', subCategory: '分叉/升級' },
             { name: 'COVID-19 疫情大跌', date: '2020-03-12', category: '總體經濟', subCategory: '黑天鵝/災難' },
-            { name: 'BTC 第三次減半', date: '2020-05-11', category: '加密貨幣內部', subCategory: '減半' },
+            { name: '美國 CPI 創40年新高 (9.1%)', date: '2022-07-13', category: '總體經濟', subCategory: '通膨數據 (CPI)' },
+            { name: '矽谷銀行倒閉', date: '2023-03-10', category: '總體經濟', subCategory: '黑天鵝/災難' },
+            { name: '以巴衝突', date: '2023-10-07', category: '總體經濟', subCategory: '戰爭/衝突' },
+            { name: '聯準會首次升息 (開啟升息循環)', date: '2022-03-16', category: '總體經濟', subCategory: '利率政策' },
+            { name: '聯準會暴力升息三碼 (75bps)', date: '2022-06-15', category: '總體經濟', subCategory: '利率政策' },
+            { name: '聯準會降息兩碼 (開啟降息循環)', date: '2024-09-18', category: '總體經濟', subCategory: '利率政策' },
+            { name: '非農就業意外強勁 (暴跌)', date: '2023-02-03', category: '總體經濟', subCategory: '就業數據 (非農)' },
+            { name: '非農就業大幅低於預期', date: '2024-08-02', category: '總體經濟', subCategory: '就業數據 (非農)' },
+
+            // Institutional & Regulatory (機構與法規)
+            { name: 'CME 推出 BTC 期貨', date: '2017-12-17', category: '機構與法規', subCategory: '衍生品/ETF' },
             { name: 'MicroStrategy 首次買入', date: '2020-08-11', category: '機構與法規', subCategory: '企業採用' },
             { name: 'Tesla 買入 BTC', date: '2021-02-08', category: '機構與法規', subCategory: '企業採用' },
             { name: 'Coinbase IPO', date: '2021-04-14', category: '機構與法規', subCategory: '交易所/企業事件' },
             { name: '中國全面封殺挖礦 (519)', date: '2021-05-19', category: '機構與法規', subCategory: '監管與法規' },
             { name: '薩爾瓦多列為法幣', date: '2021-09-07', category: '機構與法規', subCategory: '國家採用' },
-            { name: 'BTC 歷史高點 (69k)', date: '2021-11-10', category: '加密貨幣內部', subCategory: '歷史高點' },
-            { name: '聯準會首次升息', date: '2022-03-16', category: '總體經濟', subCategory: '利率政策' },
-            { name: 'Terra/Luna 崩盤', date: '2022-05-09', category: '加密貨幣內部', subCategory: '黑天鵝/災難' },
-            { name: 'FTX 破產', date: '2022-11-11', category: '機構與法規', subCategory: '交易所/企業事件' },
-            { name: '矽谷銀行倒閉', date: '2023-03-10', category: '總體經濟', subCategory: '黑天鵝/災難' },
+            { name: 'SEC 起訴 Binance & Coinbase', date: '2023-06-05', category: '機構與法規', subCategory: '監管與法規' },
+            { name: 'FTX 破產', date: '2022-11-11', category: '機構與法規', subCategory: '黑天鵝/災難' },
             { name: '貝萊德申請 ETF', date: '2023-06-15', category: '機構與法規', subCategory: '衍生品/ETF' },
-            { name: '以巴衝突', date: '2023-10-07', category: '總體經濟', subCategory: '戰爭/衝突' },
             { name: 'BTC 現貨 ETF 通過', date: '2024-01-10', category: '機構與法規', subCategory: '衍生品/ETF' },
+
+            // Crypto Internal (加密貨幣內部)
+            { name: 'BCH 硬分叉算力大戰', date: '2018-11-15', category: '加密貨幣內部', subCategory: '分叉/升級' },
+            { name: 'BTC 第三次減半', date: '2020-05-11', category: '加密貨幣內部', subCategory: '減半' },
+            { name: 'BTC 歷史高點 (69k)', date: '2021-11-10', category: '加密貨幣內部', subCategory: '歷史高點' },
+            { name: 'Terra/Luna 崩盤', date: '2022-05-09', category: '加密貨幣內部', subCategory: '黑天鵝/災難' },
+            { name: '以太坊合併 (The Merge)', date: '2022-09-15', category: '加密貨幣內部', subCategory: '分叉/升級' },
             { name: 'BTC 突破前高(69k)', date: '2024-03-05', category: '加密貨幣內部', subCategory: '歷史高點' },
-            { name: 'BTC 第四次減半', date: '2024-04-20', category: '加密貨幣內部', subCategory: '減半' },
-            { name: '聯準會降息兩碼', date: '2024-09-18', category: '總體經濟', subCategory: '利率政策' }
+            { name: 'BTC 第四次減半', date: '2024-04-20', category: '加密貨幣內部', subCategory: '減半' }
         ];
 
         const categories = [...new Set(events.map(e => e.category))];
@@ -542,20 +563,33 @@
                 ma60Series.setData(calculateMA(klineData, 60));
 
                 const lastCandle = klineData[klineData.length - 1];
-                const prevCandle = klineData[klineData.length - 2];
                 const lastPrice = lastCandle.close;
-                const prevClose = prevCandle ? prevCandle.close : lastCandle.open;
-
-                const changeVal = lastPrice - prevClose;
-                const changePct = ((changeVal / prevClose) * 100).toFixed(2);
-                const isUp = changeVal >= 0;
 
                 document.getElementById('current-price').innerText = '$' + lastPrice.toLocaleString(undefined, {maximumFractionDigits:2});
                 document.getElementById('current-price').classList.remove('error-text');
 
-                const changeEl = document.getElementById('price-change');
-                changeEl.innerText = `${isUp ? '+' : ''}${changePct}%`;
-                changeEl.className = 'price-change ' + (isUp ? 'up' : 'down');
+                // Fetch 24h ticker for accurate 24h change regardless of timeframe
+                fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`)
+                    .then(res => res.json())
+                    .then(ticker => {
+                        const changePct = parseFloat(ticker.priceChangePercent).toFixed(2);
+                        const isUp = changePct >= 0;
+                        const changeEl = document.getElementById('price-change');
+                        changeEl.innerText = `${isUp ? '+' : ''}${changePct}%`;
+                        changeEl.className = 'price-change ' + (isUp ? 'up' : 'down');
+                    })
+                    .catch(err => {
+                        console.error('Failed to fetch 24h ticker', err);
+                        // Fallback to simple calculation if api fails
+                        const prevCandle = klineData[klineData.length - 2];
+                        const prevClose = prevCandle ? prevCandle.close : lastCandle.open;
+                        const changeVal = lastPrice - prevClose;
+                        const fallbackChangePct = ((changeVal / prevClose) * 100).toFixed(2);
+                        const fallbackIsUp = changeVal >= 0;
+                        const changeEl = document.getElementById('price-change');
+                        changeEl.innerText = `${fallbackIsUp ? '+' : ''}${fallbackChangePct}%`;
+                        changeEl.className = 'price-change ' + (fallbackIsUp ? 'up' : 'down');
+                    });
 
                 renderHtmlMarkers(document.getElementById('event-category-select').value);
 
@@ -701,9 +735,6 @@
         }
 
         async function generateReport(dailyData) {
-            const tbody = document.getElementById('report-table-body');
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">資料處理中...</td></tr>';
-
             // Generate Prediction Insights
             const insights = calculateCategoryInsights(dailyData);
             const predictionContent = document.getElementById('prediction-content');
@@ -713,7 +744,7 @@
                 const data = insights[cat];
                 if (data.count === 0) continue;
 
-                insightsHTML += `<tr style="border-bottom: 1px solid rgba(43, 49, 63, 0.5);">
+                insightsHTML += `<tr class="category-row" onclick="openSubCategoryModal('${cat}')" style="border-bottom: 1px solid rgba(43, 49, 63, 0.5); cursor: pointer; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'" onmouseout="this.style.backgroundColor='transparent'">
                     <td style="text-align: left; padding: 6px 8px 6px 0; color: #E0E0E0; font-weight: 500;">
                         ${cat} <span style="color: #888; font-size: 10px; font-weight: normal; margin-left: 2px;">(${data.count})</span>
                     </td>`;
@@ -737,6 +768,25 @@
             }
             predictionContent.innerHTML = insightsHTML || '<tr><td colspan="6" style="text-align: left; padding-top: 8px; color: #888;">無足夠資料產生預測</td></tr>';
 
+            // Store the dailyData globally so the subCategory modal can access it
+            window._cachedDailyData = dailyData;
+        }
+
+        async function openSubCategoryModal(subCategoryName) {
+            document.getElementById('subCategoryTitle').innerText = `📊 ${subCategoryName} - 歷史事件`;
+            const tbody = document.getElementById('subCategoryTableBody');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color: #888;">載入中...</td></tr>';
+
+            document.getElementById('subCategoryModal').classList.add('active');
+
+            const dailyData = window._cachedDailyData || [];
+            if (dailyData.length === 0) {
+                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color: #888;">無資料</td></tr>';
+                 return;
+            }
+
+            const filteredEvents = events.filter(e => (e.subCategory || e.category) === subCategoryName);
+
             const formatChange = (oldPrice, newPrice) => {
                 if (!newPrice) return '<span style="color:#787b86">-</span>';
                 const diff = newPrice - oldPrice;
@@ -744,13 +794,11 @@
                 const isUp = diff >= 0;
                 const sign = isUp ? '+' : '';
                 const cls = isUp ? 'up' : 'down';
-                return `<span class="${cls}">${sign}$${Math.abs(diff).toLocaleString(undefined, {maximumFractionDigits:0})} (${sign}${percent}%)<br><span style="font-size:11px;color:#787b86">-> $${newPrice.toLocaleString(undefined, {maximumFractionDigits:0})}</span></span>`;
+                return `<span style="color: ${isUp ? '#00c087' : '#ff4b4b'};">${sign}$${Math.abs(diff).toLocaleString(undefined, {maximumFractionDigits:0})} (${sign}${percent}%)</span><br><span style="font-size:11px;color:#787b86">-> $${newPrice.toLocaleString(undefined, {maximumFractionDigits:0})}</span>`;
             };
 
-            let rowsHTML = '';
-
             // 使用 Promise.all 平行處理每個事件
-            const rowPromises = events.map(async (event) => {
+            const rowPromises = filteredEvents.sort((a, b) => new Date(b.date) - new Date(a.date)).map(async (event) => {
                 const eventTime = new Date(event.date).getTime() / 1000;
                 const eventTimeMs = eventTime * 1000;
 
@@ -793,26 +841,61 @@
                 `;
 
                 return `
-                    <tr>
-                        <td>
-                            <div style="font-weight:bold;color:#d1d4dc">${event.name}</div>
-                            <div class="event-date">${event.date}</div>
+                    <tr onclick="jumpToEvent('${event.date}'); closeSubCategoryModal(); closeModal()" style="cursor: pointer; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'" onmouseout="this.style.backgroundColor='transparent'">
+                        <td style="font-weight: 500;">
+                            ${event.name}
+                            <br><span style="color: #787b86; font-size: 11px;">${event.date}</span>
                         </td>
-                        <td style="font-weight:bold;color:#fff">$${currentPrice.toLocaleString(undefined, {maximumFractionDigits:0})}</td>
-                        <td>${candleStatsHTML}</td>
-                        <td>${day30Data ? formatChange(currentPrice, day30Data.close) : '<span style="color:#787b86">時間未到</span>'}</td>
-                        <td>${day90Data ? formatChange(currentPrice, day90Data.close) : '<span style="color:#787b86">時間未到</span>'}</td>
+                        <td style="text-align: right; font-weight: bold; color: #fff;">
+                            $${currentPrice.toLocaleString(undefined, {maximumFractionDigits:0})}
+                        </td>
+                        <td style="text-align: right;">${candleStatsHTML}</td>
+                        <td style="text-align: right;">${day30Data ? formatChange(currentPrice, day30Data.close) : '<span style="color:#787b86">-</span>'}</td>
+                        <td style="text-align: right;">${day90Data ? formatChange(currentPrice, day90Data.close) : '<span style="color:#787b86">-</span>'}</td>
                     </tr>
                 `;
             });
 
             const results = await Promise.all(rowPromises);
-            rowsHTML = results.join('');
+            const rowsHTML = results.join('');
 
             if (rowsHTML === '') {
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">無可用資料</td></tr>';
             } else {
                 tbody.innerHTML = rowsHTML;
+            }
+        }
+
+        function closeSubCategoryModal() {
+            document.getElementById('subCategoryModal').classList.remove('active');
+        }
+
+        function focusEvent(timestamp) {
+            // Find the logical index of the timestamp in klineData
+            if (!klineData || klineData.length === 0) return;
+
+            // Try to find exact match
+            let targetIndex = klineData.findIndex(d => d.time === timestamp);
+
+            // If exact match not found (maybe weekend/holiday), find the closest one
+            if (targetIndex === -1) {
+                let minDiff = Infinity;
+                for (let i = 0; i < klineData.length; i++) {
+                    const diff = Math.abs(klineData[i].time - timestamp);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        targetIndex = i;
+                    }
+                }
+            }
+
+            if (targetIndex !== -1) {
+                // Determine visible range (e.g., 60 bars total, centered on event)
+                const rangeHalf = 30;
+                let from = Math.max(0, targetIndex - rangeHalf);
+                let to = Math.min(klineData.length - 1, targetIndex + rangeHalf);
+
+                chart.timeScale().setVisibleLogicalRange({ from, to });
             }
         }
 
@@ -853,7 +936,7 @@
 
         function closeModal(e) {
             // Only close if clicking the backdrop (reportModal itself) or the close button (e is undefined)
-            if (e && e.target.id !== 'reportModal') return;
+            if (e && e.target && e.target.id !== 'reportModal') return;
             document.getElementById('reportModal').classList.remove('active');
         }
 
@@ -885,13 +968,14 @@
 
         categorySelect.addEventListener('change', (e) => {
             renderEventButtons(e.target.value);
-            updateCategoryStats(e.target.value);
+            updateCategoryStats(e.target.value, window._cachedDailyData && window._cachedDailyData.length > 0 ? window._cachedDailyData : (typeof dailyData !== 'undefined' && dailyData.length > 0 ? dailyData : klineData));
             renderHtmlMarkers(e.target.value);
         });
 
-        function updateCategoryStats(categoryFilter = 'all') {
+        function updateCategoryStats(categoryFilter = 'all', backgroundData = null) {
             const statsEl = document.getElementById('category-stats');
-            if (klineData.length === 0) {
+            const dataSource = backgroundData && backgroundData.length > 0 ? backgroundData : klineData;
+            if (dataSource.length === 0) {
                 statsEl.innerText = '';
                 return;
             }
@@ -904,8 +988,8 @@
 
             filteredEvents.forEach(event => {
                 const targetTime = new Date(event.date).getTime() / 1000;
-                const currentData = findPriceAfterDays(klineData, targetTime, 0);
-                const day30Data = findPriceAfterDays(klineData, targetTime, 30);
+                const currentData = findPriceAfterDays(dataSource, targetTime, 0);
+                const day30Data = findPriceAfterDays(dataSource, targetTime, 30);
 
                 if (currentData && day30Data) {
                     totalEvaluated++;
