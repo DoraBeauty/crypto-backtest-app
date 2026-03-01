@@ -800,7 +800,24 @@
 
             chart.timeScale().setVisibleRange({ from: targetTime - visibleBefore, to: targetTime + visibleAfter });
 
-            // Show Overlay
+            // Do not show the event card overlay automatically when jumping to event
+            document.getElementById('event-overlay').classList.remove('active');
+            currentEventTime = null;
+
+            // Close modal if open so user can see the chart
+            document.getElementById('reportModal').classList.remove('active');
+        }
+
+        function resetZoom() {
+            chart.timeScale().fitContent();
+            document.getElementById('event-overlay').classList.remove('active');
+            currentEventTime = null;
+        }
+
+        async function showEventCard(event) {
+            const targetTime = new Date(event.date).getTime() / 1000;
+            const targetTimeMs = targetTime * 1000;
+
             const currentData = findPriceAfterDays(klineData, targetTime, 0);
             const dailyData = dailyKlineDataCache[currentSymbol] || klineData;
             const day30Data = findPriceAfterDays(dailyData, targetTime, 30);
@@ -827,9 +844,7 @@
             }
 
             if (currentData) {
-                // 當根K棒振幅 (高-低)/低 * 100
                 const amplitude = ((currentData.high - currentData.low) / currentData.low) * 100;
-                // 當根K棒漲跌 (收-開)/開 * 100
                 const candleChange = currentData.close - currentData.open;
                 const candlePercent = (candleChange / currentData.open) * 100;
                 const isCandleUp = candleChange >= 0;
@@ -851,16 +866,39 @@
             const overlay = document.getElementById('event-overlay');
             overlay.classList.add('active');
             updateOverlayPosition();
-
-            // Close modal if open so user can see the chart
-            document.getElementById('reportModal').classList.remove('active');
         }
 
-        function resetZoom() {
-            chart.timeScale().fitContent();
-            document.getElementById('event-overlay').classList.remove('active');
-            currentEventTime = null;
-        }
+        // Event listener for clicking on the chart to show/hide event cards
+        chart.subscribeClick((param) => {
+            if (!param || !param.time) {
+                // Clicked outside chart data area or no param
+                document.getElementById('event-overlay').classList.remove('active');
+                currentEventTime = null;
+                return;
+            }
+
+            // Find the closest event within a small window
+            const clickedTimeMs = param.time * 1000;
+            const threshold = { '15m': 15*60*1000, '1h': 60*60*1000, '4h': 4*60*60*1000, '1d': 24*60*60*1000, '1w': 7*24*60*60*1000 }[currentInterval] || 24*60*60*1000;
+
+            let clickedEvent = null;
+            for (let e of events) {
+                const eTimeMs = new Date(e.date).getTime();
+                // If the clicked K-line time is very close to the event time
+                if (Math.abs(eTimeMs - clickedTimeMs) <= threshold) {
+                    clickedEvent = e;
+                    break;
+                }
+            }
+
+            if (clickedEvent) {
+                showEventCard(clickedEvent);
+            } else {
+                // Clicked on empty space (a K-line without an event)
+                document.getElementById('event-overlay').classList.remove('active');
+                currentEventTime = null;
+            }
+        });
 
         window.addEventListener('resize', () => {
             const headerHeight = document.querySelector('.header').offsetHeight;
