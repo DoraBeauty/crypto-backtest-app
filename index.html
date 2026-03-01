@@ -58,6 +58,90 @@
         .fab:hover { background-color: #1e4bd8; transform: scale(1.05); }
         .fab:active { transform: scale(0.95); }
 
+
+        /* HTML Event Markers */
+        #html-markers-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Let clicks pass to chart unless hitting a marker */
+            z-index: 5;
+            overflow: hidden;
+        }
+
+        .html-marker-wrapper {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 0;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0; /* Hidden by default if offscreen */
+            transition: opacity 0.2s;
+        }
+
+        .html-marker-wrapper.visible {
+            opacity: 1;
+        }
+
+        .html-marker-line {
+            width: 1px;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent 20%, rgba(255, 152, 0, 0.4) 50%, transparent 80%);
+            border-left: 1px dashed rgba(255, 152, 0, 0.3);
+            pointer-events: none;
+        }
+
+        .html-marker-btn {
+            position: absolute;
+            top: 15%; /* Float above the chart */
+            background: rgba(30, 34, 45, 0.7);
+            border: 1px solid rgba(255, 152, 0, 0.5);
+            color: #ff9800;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            pointer-events: auto; /* Enable clicks on the button */
+            transform: translateX(-50%); /* Center over the line */
+            backdrop-filter: blur(4px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4), 0 0 10px rgba(255, 152, 0, 0.1);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .html-marker-btn:hover {
+            background: rgba(255, 152, 0, 0.15);
+            border-color: rgba(255, 152, 0, 0.9);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5), 0 0 15px rgba(255, 152, 0, 0.3);
+            transform: translateX(-50%) scale(1.08);
+            color: #fff;
+            z-index: 6;
+        }
+
+        .html-marker-btn:active {
+            transform: translateX(-50%) scale(0.95);
+            background: rgba(255, 152, 0, 0.3);
+        }
+
+        .html-marker-btn.active {
+            background: rgba(255, 152, 0, 0.9);
+            color: #131722;
+            border-color: #ff9800;
+            box-shadow: 0 0 20px rgba(255, 152, 0, 0.5);
+        }
+
+        /* Adjust Event Overlay (Card) z-index to be above markers */
+        .event-overlay-card {
+            margin-top: 25vh;
+            z-index: 20;
+        }
+
         /* Event Overlay Styles */
         .event-overlay {
             position: absolute;
@@ -66,7 +150,7 @@
             width: 200px; /* max width of card */
             pointer-events: none; /* Let clicks pass through to chart */
             display: none;
-            z-index: 10;
+            z-index: 45;
         }
 
         .event-overlay-line {
@@ -80,9 +164,10 @@
             box-shadow: 0 0 10px rgba(255, 152, 0, 0.5);
         }
 
-        .event-overlay-card {
+.event-overlay-card {
+            margin-top: 25vh;
             position: absolute;
-            top: 10px; /* Start 10px from the top of the chart */
+            top: 20px; /* Start 10px from the top of the chart */
             background-color: rgba(30, 34, 45, 0.9);
             border: 1px solid #434651;
             border-radius: 8px;
@@ -95,7 +180,7 @@
             transform: translateX(-50%);
             min-width: 140px;
             pointer-events: auto; /* Allow clicks on card if needed */
-            z-index: 10;
+            z-index: 50;
         }
 
         .event-overlay-title {
@@ -191,9 +276,12 @@
     </div>
     
     <div id="chart-container" style="position: relative; width: 100vw; height: calc(100vh - 120px);">
+
         <div id="tvchart" style="width: 100%; height: 100%;"></div>
+        <div id="html-markers-container"></div>
+
         <div id="event-overlay" class="event-overlay">
-            <div class="event-overlay-line"></div>
+            <!-- Line removed, HTML marker has its own line -->
             <div class="event-overlay-card">
                 <div class="event-overlay-title" id="overlay-title"></div>
                 <div class="event-overlay-date" id="overlay-date"></div>
@@ -412,14 +500,7 @@
                 changeEl.innerText = `${isUp ? '+' : ''}${changePct}%`;
                 changeEl.className = 'price-change ' + (isUp ? 'up' : 'down');
 
-                const markers = events.map(event => {
-                    const eventTime = new Date(event.date).getTime() / 1000;
-                    return {
-                        time: eventTime, position: 'aboveBar', color: '#ff9800',
-                        shape: 'arrowDown', text: event.name, size: 2
-                    };
-                });
-                candlestickSeries.setMarkers(markers);
+                renderHtmlMarkers(document.getElementById('event-category-select').value);
 
                 // 確保日線資料已取得，然後產生報表和統計
                 const dailyData = await dailyDataPromise;
@@ -662,6 +743,7 @@
         categorySelect.addEventListener('change', (e) => {
             renderEventButtons(e.target.value);
             updateCategoryStats(e.target.value);
+            renderHtmlMarkers(e.target.value);
         });
 
         function updateCategoryStats(categoryFilter = 'all') {
@@ -706,6 +788,86 @@
 
         // 執行抓取
         fetchAllData(currentSymbol, currentInterval);
+
+
+        // Store marker elements to update positions efficiently
+        let markerElements = [];
+
+        function renderHtmlMarkers(categoryFilter = 'all') {
+            const container = document.getElementById('html-markers-container');
+            container.innerHTML = '';
+            markerElements = [];
+
+            const filteredEvents = categoryFilter === 'all' ? events : events.filter(e => e.category === categoryFilter);
+
+            // Generate distinct heights so labels don't always overlap perfectly horizontally
+            const heights = ['10%', '15%', '20%', '25%'];
+
+            filteredEvents.forEach((event, index) => {
+                const targetTime = new Date(event.date).getTime() / 1000;
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'html-marker-wrapper';
+
+                const line = document.createElement('div');
+                line.className = 'html-marker-line';
+
+                const btn = document.createElement('div');
+                btn.className = 'html-marker-btn';
+                btn.innerText = event.name;
+                // Stagger top position
+                btn.style.top = heights[index % heights.length];
+
+                // Add click event for the button
+                btn.onclick = (e) => {
+                    e.stopPropagation(); // Don't trigger chart click
+
+                    // Remove active state from all
+                    document.querySelectorAll('.html-marker-btn').forEach(el => el.classList.remove('active'));
+                    btn.classList.add('active');
+
+                    showEventCard(event);
+                };
+
+                wrapper.appendChild(line);
+                wrapper.appendChild(btn);
+                container.appendChild(wrapper);
+
+                markerElements.push({
+                    el: wrapper,
+                    btn: btn,
+                    time: targetTime,
+                    event: event
+                });
+            });
+
+            updateHtmlMarkersPosition();
+        }
+
+        function updateHtmlMarkersPosition() {
+            const chartContainer = document.getElementById('chart-container');
+            if (!chartContainer) return;
+            const chartWidth = chartContainer.clientWidth;
+
+            markerElements.forEach(marker => {
+                const x = chart.timeScale().timeToCoordinate(marker.time);
+
+                // If coordinate is valid and within visible area (plus slight buffer)
+                if (x !== null && x > -50 && x < chartWidth + 50) {
+                    marker.el.style.left = `${x}px`;
+                    marker.el.classList.add('visible');
+
+                    // Highlight the currently focused event's marker
+                    if (currentEventTime === marker.time) {
+                        marker.btn.classList.add('active');
+                    } else {
+                        marker.btn.classList.remove('active');
+                    }
+                } else {
+                    marker.el.classList.remove('visible');
+                }
+            });
+        }
 
         let currentEventTime = null; // Track currently focused event time
 
@@ -763,6 +925,7 @@
         // Update overlay position on scroll/zoom
         chart.timeScale().subscribeVisibleTimeRangeChange(() => {
             updateOverlayPosition();
+            updateHtmlMarkersPosition();
         });
 
         async function jumpToEvent(dateString) {
@@ -803,6 +966,7 @@
             // Do not show the event card overlay automatically when jumping to event
             document.getElementById('event-overlay').classList.remove('active');
             currentEventTime = null;
+            document.querySelectorAll('.html-marker-btn').forEach(el => el.classList.remove('active'));
 
             // Close modal if open so user can see the chart
             document.getElementById('reportModal').classList.remove('active');
@@ -812,6 +976,7 @@
             chart.timeScale().fitContent();
             document.getElementById('event-overlay').classList.remove('active');
             currentEventTime = null;
+            document.querySelectorAll('.html-marker-btn').forEach(el => el.classList.remove('active'));
         }
 
         async function showEventCard(event) {
@@ -868,41 +1033,18 @@
             updateOverlayPosition();
         }
 
-        // Event listener for clicking on the chart to show/hide event cards
+        // Event listener for clicking on the chart to hide event cards
+        // The markers themselves handle showing the cards via standard DOM clicks.
         chart.subscribeClick((param) => {
-            if (!param || !param.time) {
-                // Clicked outside chart data area or no param
-                document.getElementById('event-overlay').classList.remove('active');
-                currentEventTime = null;
-                return;
-            }
-
-            // Find the closest event within a small window
-            const clickedTimeMs = param.time * 1000;
-            const threshold = { '15m': 15*60*1000, '1h': 60*60*1000, '4h': 4*60*60*1000, '1d': 24*60*60*1000, '1w': 7*24*60*60*1000 }[currentInterval] || 24*60*60*1000;
-
-            let clickedEvent = null;
-            for (let e of events) {
-                const eTimeMs = new Date(e.date).getTime();
-                // If the clicked K-line time is very close to the event time
-                if (Math.abs(eTimeMs - clickedTimeMs) <= threshold) {
-                    clickedEvent = e;
-                    break;
-                }
-            }
-
-            if (clickedEvent) {
-                showEventCard(clickedEvent);
-            } else {
-                // Clicked on empty space (a K-line without an event)
-                document.getElementById('event-overlay').classList.remove('active');
-                currentEventTime = null;
-            }
+            document.getElementById('event-overlay').classList.remove('active');
+            currentEventTime = null;
+            document.querySelectorAll('.html-marker-btn').forEach(el => el.classList.remove('active'));
         });
 
         window.addEventListener('resize', () => {
             const headerHeight = document.querySelector('.header').offsetHeight;
             chart.resize(window.innerWidth, window.innerHeight - headerHeight);
+            updateHtmlMarkersPosition();
         });
 
         // Initial call to set correct height
