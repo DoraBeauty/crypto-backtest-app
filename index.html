@@ -7,17 +7,44 @@
     <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
     <style>
         body { margin: 0; padding: 0; background-color: #131722; color: #d1d4dc; font-family: -apple-system, sans-serif; overflow: hidden; }
-        .header { padding: 15px 20px; background-color: #1e222d; border-bottom: 1px solid #2b313f; display: flex; flex-direction: column; gap: 10px; }
-        .header-top { display: flex; justify-content: space-between; align-items: center; }
-        h1 { margin: 0; font-size: 20px; color: #fff; font-weight: 600; }
-        .price-display { font-size: 24px; font-weight: bold; color: #00c087; }
-        .error-text { color: #ff4b4b; font-size: 16px; font-weight: normal; }
+        .header { padding: 15px 15px; background-color: #1e222d; border-bottom: 1px solid #2b313f; display: flex; flex-direction: column; gap: 12px; }
+        .header-top { display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 4px; }
+        @media (min-width: 600px) {
+            .header-top { flex-direction: row; justify-content: space-between; align-items: center; }
+        }
+        h1 { margin: 0; font-size: 22px; color: #fff; font-weight: 700; letter-spacing: 0.5px; }
+        .price-display { font-size: 28px; font-weight: 800; color: #00c087; line-height: 1.2; }
+        .error-text { color: #ff4b4b; font-size: 18px; font-weight: normal; }
+
+        .controls { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+        .controls::-webkit-scrollbar { display: none; }
+        button { background-color: #2b313f; color: #e1e3e6; border: 1px solid #434651; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600; white-space: nowrap; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        button:active { background-color: #1e4bd8; border-color: #1e4bd8; transform: translateY(1px); box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        @media (hover: hover) { button:hover { background-color: #2962ff; color: white; border-color: #2962ff; } }
+
+        #tvchart { width: 100vw; height: calc(100vh - 130px); }
+
+        /* Modal Styles */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; opacity: 0; transition: opacity 0.3s ease; }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-content { background: #1e222d; width: 95vw; max-width: 900px; max-height: 90vh; border-radius: 12px; border: 1px solid #2b313f; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transform: translateY(20px); transition: transform 0.3s ease; }
+        .modal-overlay.active .modal-content { transform: translateY(0); }
+        .modal-header { padding: 15px 20px; border-bottom: 1px solid #2b313f; display: flex; justify-content: space-between; align-items: center; background: #2b313f; }
+        .modal-header h2 { margin: 0; font-size: 18px; color: #fff; }
+        .close-btn { background: transparent; border: none; color: #d1d4dc; font-size: 24px; cursor: pointer; padding: 0; margin: 0; box-shadow: none; line-height: 1; }
+        .close-btn:hover { color: #fff; background: transparent; }
+        .table-container { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0; }
         
-        .controls { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
-        button { background-color: #2b313f; color: #d1d4dc; border: 1px solid #434651; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; white-space: nowrap; transition: all 0.2s ease; }
-        button:hover { background-color: #2962ff; color: white; border-color: #2962ff; }
+        table { width: 100%; border-collapse: collapse; text-align: right; font-size: 14px; }
+        th, td { padding: 12px 15px; border-bottom: 1px solid #2b313f; white-space: nowrap; }
+        th { background: #131722; color: #787b86; font-weight: normal; position: sticky; top: 0; z-index: 10; border-bottom: 2px solid #2b313f; }
+        th:first-child, td:first-child { text-align: left; }
+        tr:hover { background-color: rgba(41, 98, 255, 0.1); }
+        .up { color: #00c087; }
+        .down { color: #ff4b4b; }
+        .event-date { font-size: 12px; color: #787b86; margin-top: 4px; }
         
-        #tvchart { width: 100vw; height: calc(100vh - 100px); }
+        #btn-report { background-color: #2962ff; border-color: #2962ff; color: white; }
     </style>
 </head>
 <body>
@@ -29,14 +56,43 @@
         </div>
         <div class="controls" id="event-buttons">
             <button onclick="resetZoom()">全貌視角</button>
+            <button id="btn-report" onclick="openModal()">📊 查看事件報表</button>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="reportModal" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>📊 歷史大事件價格變化統計</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>事件 / 日期</th>
+                            <th>當下價格</th>
+                            <th>一個月後變化</th>
+                            <th>三個月後變化</th>
+                        </tr>
+                    </thead>
+                    <tbody id="report-table-body">
+                        <tr><td colspan="4" style="text-align:center;">資料運算中...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
     
     <div id="tvchart"></div>
 
     <script>
+        const isMobile = window.innerWidth < 600;
+        const fontSize = isMobile ? 14 : 12;
+
         const chart = LightweightCharts.createChart(document.getElementById('tvchart'), {
-            layout: { background: { type: 'solid', color: '#131722' }, textColor: '#d1d4dc', },
+            layout: { background: { type: 'solid', color: '#131722' }, textColor: '#d1d4dc', fontSize: fontSize },
             grid: { vertLines: { color: '#2b313f' }, horzLines: { color: '#2b313f' }, },
             crosshair: { mode: LightweightCharts.CrosshairMode.Normal, },
             rightPriceScale: { borderColor: '#2b313f', },
@@ -49,27 +105,70 @@
         });
 
         const events = [
+            { name: 'CME 推出 BTC 期貨', date: '2017-12-17' },
+            { name: '中美貿易戰爆發', date: '2018-03-22' },
+            { name: 'BCH 硬分叉算力大戰', date: '2018-11-15' },
+            { name: 'COVID-19 疫情大跌', date: '2020-03-12' },
+            { name: 'BTC 第三次減半', date: '2020-05-11' },
+            { name: 'MicroStrategy 首次買入', date: '2020-08-11' },
+            { name: 'Tesla 買入 BTC', date: '2021-02-08' },
+            { name: 'Coinbase IPO', date: '2021-04-14' },
+            { name: '中國全面封殺挖礦 (519)', date: '2021-05-19' },
+            { name: '薩爾瓦多列為法幣', date: '2021-09-07' },
+            { name: 'BTC 歷史高點 (69k)', date: '2021-11-10' },
+            { name: '聯準會首次升息', date: '2022-03-16' },
+            { name: 'Terra/Luna 崩盤', date: '2022-05-09' },
+            { name: 'FTX 破產', date: '2022-11-11' },
+            { name: '矽谷銀行倒閉', date: '2023-03-10' },
+            { name: '貝萊德申請 ETF', date: '2023-06-15' },
             { name: '以巴衝突', date: '2023-10-07' },
-            { name: 'BTC ETF 通過', date: '2024-01-10' },
-            { name: 'BTC 第四次減半', date: '2024-04-20' }
+            { name: 'BTC 現貨 ETF 通過', date: '2024-01-10' },
+            { name: 'BTC 突破前高(69k)', date: '2024-03-05' },
+            { name: 'BTC 第四次減半', date: '2024-04-20' },
+            { name: '聯準會降息兩碼', date: '2024-09-18' }
         ];
 
         let klineData = [];
 
-        // 🟢 這裡換成了更穩定的 Binance Data API 節點，並加入了錯誤捕捉 (.catch)
-        fetch('https://data-api.binance.vision/api/v3/klines?symbol=BTCUSDT&interval=1d&limit=1000')
-            .then(res => {
-                if (!res.ok) throw new Error('無法連線到交易所伺服器');
-                return res.json();
-            })
-            .then(data => {
-                klineData = data.map(d => ({
-                    time: d[0] / 1000, 
-                    open: parseFloat(d[1]),
-                    high: parseFloat(d[2]),
-                    low: parseFloat(d[3]),
-                    close: parseFloat(d[4])
-                }));
+        // 🟢 改用非同步函數來分批抓取所有的歷史資料 (突破 1000 天限制)
+        async function fetchAllData() {
+            try {
+                let allData = [];
+                let endTime = Date.now();
+                // 幣安 BTCUSDT 大約從 2017 年 8 月開始有資料 (1501545600000)
+                const startTimeLimit = 1501545600000;
+
+                // 為了避免載入太久，這裡我們最多抓取 5 次 (大約 5000 天, 足夠涵蓋到 2017)
+                for (let i = 0; i < 5; i++) {
+                    const res = await fetch(`https://data-api.binance.vision/api/v3/klines?symbol=BTCUSDT&interval=1d&limit=1000&endTime=${endTime}`);
+                    if (!res.ok) throw new Error('無法連線到交易所伺服器');
+                    const data = await res.json();
+
+                    if (data.length === 0) break;
+
+                    // 幣安回傳的資料是按時間遞增的，我們把它加到前面
+                    allData = data.concat(allData);
+
+                    // 下一次抓取的 endTime 是這批資料的第一筆時間減 1 毫秒
+                    endTime = data[0][0] - 1;
+
+                    // 如果已經抓到 2017 年之前，就停止
+                    if (endTime < startTimeLimit) break;
+                }
+
+                // 過濾掉重複或時間錯誤的資料 (確保時間唯一且遞增)
+                const uniqueDataMap = new Map();
+                allData.forEach(d => {
+                    uniqueDataMap.set(d[0], {
+                        time: d[0] / 1000,
+                        open: parseFloat(d[1]),
+                        high: parseFloat(d[2]),
+                        low: parseFloat(d[3]),
+                        close: parseFloat(d[4])
+                    });
+                });
+
+                klineData = Array.from(uniqueDataMap.values()).sort((a, b) => a.time - b.time);
 
                 candlestickSeries.setData(klineData);
                 
@@ -85,14 +184,109 @@
                     };
                 });
                 candlestickSeries.setMarkers(markers);
-            })
-            .catch(err => {
+
+                // 產生報表
+                generateReport(klineData);
+
+                // Set visible logical range to the last ~90 days for better readability
+                const totalBars = klineData.length;
+                if (totalBars > 90) {
+                    chart.timeScale().setVisibleLogicalRange({
+                        from: totalBars - 90,
+                        to: totalBars - 1,
+                    });
+                } else {
+                    chart.timeScale().fitContent();
+                }
+            } catch (err) {
                 // 🔴 如果抓不到資料，會在這裡顯示錯誤，不會卡死
                 console.error("錯誤:", err);
                 const priceDiv = document.getElementById('current-price');
                 priceDiv.innerText = '連線交易所失敗，請稍後重試';
                 priceDiv.classList.add('error-text');
+            }
+        }
+
+        function generateReport(data) {
+            const tbody = document.getElementById('report-table-body');
+            tbody.innerHTML = '';
+
+            // 建立時間戳記到價格的快速對應，方便查詢
+            // 由於可能放假沒開盤或剛好沒資料，我們用一個接近搜尋的方法
+            const findPriceAfterDays = (baseTime, days) => {
+                const targetTime = baseTime + days * 24 * 60 * 60;
+                // 找出最接近目標時間的K棒
+                let closest = null;
+                let minDiff = Infinity;
+                for (let i = 0; i < data.length; i++) {
+                    const diff = Math.abs(data[i].time - targetTime);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        closest = data[i];
+                    }
+                    if (data[i].time > targetTime + 86400 * 3) break; // 提早結束搜尋
+                }
+
+                // 如果最接近的日子與目標日子相差超過 5 天，代表該未來日期還沒到 (或是交易所關門太久)，就回傳 null
+                if (minDiff > 86400 * 5) return null;
+
+                return closest;
+            };
+
+            const formatChange = (oldPrice, newPrice) => {
+                if (!newPrice) return '<span style="color:#787b86">-</span>';
+                const diff = newPrice - oldPrice;
+                const percent = ((diff / oldPrice) * 100).toFixed(2);
+                const isUp = diff >= 0;
+                const sign = isUp ? '+' : '';
+                const cls = isUp ? 'up' : 'down';
+                return `<span class="${cls}">${sign}$${Math.abs(diff).toLocaleString(undefined, {maximumFractionDigits:0})} (${sign}${percent}%)<br><span style="font-size:11px;color:#787b86">-> $${newPrice.toLocaleString(undefined, {maximumFractionDigits:0})}</span></span>`;
+            };
+
+            events.forEach(event => {
+                const eventTime = new Date(event.date).getTime() / 1000;
+
+                // 找當下價格
+                const currentData = findPriceAfterDays(eventTime, 0);
+                if (!currentData) return;
+
+                const currentPrice = currentData.close;
+
+                // 找 30 天與 90 天後的價格
+                const day30Data = findPriceAfterDays(eventTime, 30);
+                const day90Data = findPriceAfterDays(eventTime, 90);
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>
+                        <div style="font-weight:bold;color:#d1d4dc">${event.name}</div>
+                        <div class="event-date">${event.date}</div>
+                    </td>
+                    <td style="font-weight:bold;color:#fff">$${currentPrice.toLocaleString(undefined, {maximumFractionDigits:0})}</td>
+                    <td>${day30Data ? formatChange(currentPrice, day30Data.close) : '<span style="color:#787b86">時間未到</span>'}</td>
+                    <td>${day90Data ? formatChange(currentPrice, day90Data.close) : '<span style="color:#787b86">時間未到</span>'}</td>
+                `;
+                tbody.appendChild(tr);
             });
+
+            if (tbody.innerHTML === '') {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">無可用資料</td></tr>';
+            }
+        }
+
+        // Modal Functions
+        function openModal() {
+            document.getElementById('reportModal').classList.add('active');
+        }
+
+        function closeModal(e) {
+            // Only close if clicking the backdrop (reportModal itself) or the close button (e is undefined)
+            if (e && e.target.id !== 'reportModal') return;
+            document.getElementById('reportModal').classList.remove('active');
+        }
+
+        // 執行抓取
+        fetchAllData();
 
         const buttonContainer = document.getElementById('event-buttons');
         events.forEach(event => {
@@ -112,8 +306,15 @@
         function resetZoom() { chart.timeScale().fitContent(); }
 
         window.addEventListener('resize', () => {
-            chart.resize(window.innerWidth, window.innerHeight - 100);
+            const headerHeight = document.querySelector('.header').offsetHeight;
+            chart.resize(window.innerWidth, window.innerHeight - headerHeight);
         });
+
+        // Initial call to set correct height
+        setTimeout(() => {
+            const headerHeight = document.querySelector('.header').offsetHeight;
+            chart.resize(window.innerWidth, window.innerHeight - headerHeight);
+        }, 0);
     </script>
 </body>
 </html>
