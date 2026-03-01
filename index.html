@@ -48,11 +48,75 @@
         .up { color: #00c087; }
         .down { color: #ff4b4b; }
         .event-date { font-size: 12px; color: #787b86; margin-top: 4px; }
-        
+
         /* Floating Action Button */
         .fab { position: fixed; bottom: 20px; right: 20px; background-color: #2962ff; color: white; border: none; padding: 14px 20px; border-radius: 30px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(41,98,255,0.4); z-index: 50; transition: transform 0.2s, background-color 0.2s; display: flex; align-items: center; gap: 8px; }
         .fab:hover { background-color: #1e4bd8; transform: scale(1.05); }
         .fab:active { transform: scale(0.95); }
+
+        /* Event Overlay Styles */
+        .event-overlay {
+            position: absolute;
+            top: 60px; /* Below header */
+            bottom: 0;
+            width: 200px; /* max width of card */
+            pointer-events: none; /* Let clicks pass through to chart */
+            display: none;
+            z-index: 10;
+            /* Center line is at x=100px of this div */
+        }
+
+        .event-overlay.active {
+            display: block;
+        }
+
+        .event-overlay-line {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 2px;
+            background-color: rgba(255, 152, 0, 0.5); /* Orange to match arrows */
+            transform: translateX(-50%);
+            box-shadow: 0 0 10px rgba(255, 152, 0, 0.5);
+        }
+
+        .event-overlay-card {
+            position: absolute;
+            top: 40px;
+            background-color: rgba(30, 34, 45, 0.9);
+            border: 1px solid #434651;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            backdrop-filter: blur(4px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            /* Center the card relative to the line */
+            left: 50%;
+            transform: translateX(-50%);
+            min-width: 140px;
+            pointer-events: auto; /* Allow clicks on card if needed, or keep none */
+            z-index: 10;
+        }
+
+        .event-overlay-title {
+            color: #d1d4dc;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .event-overlay-date {
+            color: #787b86;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .event-overlay-change {
+            font-size: 13px;
+        }
+        .event-overlay-change.up { color: #00c087; }
+        .event-overlay-change.down { color: #ff4b4b; }
     </style>
 </head>
 <body>
@@ -103,6 +167,15 @@
     </div>
     
     <div id="tvchart"></div>
+
+    <div id="event-overlay" class="event-overlay">
+        <div class="event-overlay-line"></div>
+        <div class="event-overlay-card">
+            <div class="event-overlay-title" id="overlay-title"></div>
+            <div class="event-overlay-date" id="overlay-date"></div>
+            <div class="event-overlay-change" id="overlay-change"></div>
+        </div>
+    </div>
 
     <script>
         const isMobile = window.innerWidth < 600;
@@ -276,31 +349,31 @@
             }
         }
 
+        // 建立時間戳記到價格的快速對應，方便查詢
+        // 由於可能放假沒開盤或剛好沒資料，我們用一個接近搜尋的方法
+        function findPriceAfterDays(data, baseTime, days) {
+            const targetTime = baseTime + days * 24 * 60 * 60;
+            // 找出最接近目標時間的K棒
+            let closest = null;
+            let minDiff = Infinity;
+            for (let i = 0; i < data.length; i++) {
+                const diff = Math.abs(data[i].time - targetTime);
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    closest = data[i];
+                }
+                if (data[i].time > targetTime + 86400 * 3) break; // 提早結束搜尋
+            }
+
+            // 如果最接近的日子與目標日子相差超過 5 天，代表該未來日期還沒到 (或是交易所關門太久)，就回傳 null
+            if (minDiff > 86400 * 5) return null;
+
+            return closest;
+        }
+
         function generateReport(data) {
             const tbody = document.getElementById('report-table-body');
             tbody.innerHTML = '';
-
-            // 建立時間戳記到價格的快速對應，方便查詢
-            // 由於可能放假沒開盤或剛好沒資料，我們用一個接近搜尋的方法
-            const findPriceAfterDays = (baseTime, days) => {
-                const targetTime = baseTime + days * 24 * 60 * 60;
-                // 找出最接近目標時間的K棒
-                let closest = null;
-                let minDiff = Infinity;
-                for (let i = 0; i < data.length; i++) {
-                    const diff = Math.abs(data[i].time - targetTime);
-                    if (diff < minDiff) {
-                        minDiff = diff;
-                        closest = data[i];
-                    }
-                    if (data[i].time > targetTime + 86400 * 3) break; // 提早結束搜尋
-                }
-
-                // 如果最接近的日子與目標日子相差超過 5 天，代表該未來日期還沒到 (或是交易所關門太久)，就回傳 null
-                if (minDiff > 86400 * 5) return null;
-
-                return closest;
-            };
 
             const formatChange = (oldPrice, newPrice) => {
                 if (!newPrice) return '<span style="color:#787b86">-</span>';
@@ -316,14 +389,14 @@
                 const eventTime = new Date(event.date).getTime() / 1000;
 
                 // 找當下價格
-                const currentData = findPriceAfterDays(eventTime, 0);
+                const currentData = findPriceAfterDays(data, eventTime, 0);
                 if (!currentData) return;
 
                 const currentPrice = currentData.close;
 
                 // 找 30 天與 90 天後的價格
-                const day30Data = findPriceAfterDays(eventTime, 30);
-                const day90Data = findPriceAfterDays(eventTime, 90);
+                const day30Data = findPriceAfterDays(data, eventTime, 30);
+                const day90Data = findPriceAfterDays(data, eventTime, 90);
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
@@ -379,14 +452,84 @@
             buttonContainer.appendChild(btn);
         });
 
+        let currentEventTime = null; // Track currently focused event time
+
+        function updateOverlayPosition() {
+            const overlay = document.getElementById('event-overlay');
+            if (!overlay.classList.contains('active') || !currentEventTime) {
+                overlay.style.display = 'none';
+                return;
+            }
+
+            // Convert time to x coordinate on the chart
+            const x = chart.timeScale().timeToCoordinate(currentEventTime);
+
+            // Check if coordinate is valid and visible
+            const chartWidth = document.getElementById('tvchart').clientWidth;
+            if (x === null || x < 0 || x > chartWidth) {
+                overlay.style.display = 'none';
+                return;
+            }
+
+            // Show overlay and position it
+            overlay.style.display = 'block';
+            overlay.style.left = `${x - 100}px`; // 100 is half of the 200px width of the overlay container
+        }
+
+        // Update overlay position on scroll/zoom
+        chart.timeScale().subscribeVisibleTimeRangeChange(() => {
+            updateOverlayPosition();
+        });
+
         function jumpToEvent(dateString) {
+            const event = events.find(e => e.date === dateString);
+            if (!event) return;
+
             const targetTime = new Date(dateString).getTime() / 1000;
             const days7 = 7 * 24 * 60 * 60;
             const days23 = 23 * 24 * 60 * 60;
+
+            // Set chart range
             chart.timeScale().setVisibleRange({ from: targetTime - days7, to: targetTime + days23 });
+
+            // Show Overlay
+            const currentData = findPriceAfterDays(klineData, targetTime, 0);
+            const day30Data = findPriceAfterDays(klineData, targetTime, 30);
+
+            const titleEl = document.getElementById('overlay-title');
+            const dateEl = document.getElementById('overlay-date');
+            const changeEl = document.getElementById('overlay-change');
+
+            titleEl.innerText = event.name;
+            dateEl.innerText = event.date;
+
+            if (currentData && day30Data) {
+                const diff = day30Data.close - currentData.close;
+                const percent = ((diff / currentData.close) * 100).toFixed(2);
+                const isUp = diff >= 0;
+                const sign = isUp ? '+' : '';
+                changeEl.className = 'event-overlay-change ' + (isUp ? 'up' : 'down');
+                changeEl.innerText = `30天後: ${sign}${percent}%`;
+            } else {
+                changeEl.className = 'event-overlay-change';
+                changeEl.innerText = '30天後: 無資料';
+                changeEl.style.color = '#787b86';
+            }
+
+            currentEventTime = targetTime;
+            const overlay = document.getElementById('event-overlay');
+            overlay.classList.add('active');
+            updateOverlayPosition();
+
+            // Close modal if open so user can see the chart
+            document.getElementById('reportModal').classList.remove('active');
         }
 
-        function resetZoom() { chart.timeScale().fitContent(); }
+        function resetZoom() {
+            chart.timeScale().fitContent();
+            document.getElementById('event-overlay').classList.remove('active');
+            currentEventTime = null;
+        }
 
         window.addEventListener('resize', () => {
             const headerHeight = document.querySelector('.header').offsetHeight;
