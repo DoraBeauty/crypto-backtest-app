@@ -137,21 +137,20 @@
             box-shadow: 0 0 20px rgba(255, 152, 0, 0.5);
         }
 
-        /* Adjust Event Overlay (Card) z-index to be above markers */
-        .event-overlay-card {
-            margin-top: 25vh;
-            z-index: 20;
-        }
-
         /* Event Overlay Styles */
         .event-overlay {
             position: absolute;
             top: 0;
+            left: 0;
+            right: 0;
             bottom: 0;
-            width: 200px; /* max width of card */
             pointer-events: none; /* Let clicks pass through to chart */
             display: none;
             z-index: 45;
+        }
+
+        .event-overlay.active {
+            display: block;
         }
 
         .event-overlay-line {
@@ -165,10 +164,10 @@
             box-shadow: 0 0 10px rgba(255, 152, 0, 0.5);
         }
 
-.event-overlay-card {
-            margin-top: 25vh;
+        .event-overlay-card {
             position: absolute;
-            top: 20px; /* Start 10px from the top of the chart */
+            top: 20px;
+            right: 20px;
             background-color: rgba(30, 34, 45, 0.9);
             border: 1px solid #434651;
             border-radius: 8px;
@@ -176,12 +175,15 @@
             text-align: center;
             backdrop-filter: blur(4px);
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            /* Initial centering */
-            left: 50%;
-            transform: translateX(-50%);
             min-width: 140px;
             pointer-events: auto; /* Allow clicks on card if needed */
             z-index: 50;
+            cursor: grab; /* Show grab cursor to indicate draggability */
+            user-select: none; /* Prevent text selection while dragging */
+        }
+
+        .event-overlay-card:active {
+            cursor: grabbing;
         }
 
         .event-overlay-close-btn {
@@ -416,7 +418,7 @@
         <div id="html-markers-container"></div>
 
         <div id="event-overlay" class="event-overlay">
-            <!-- Line removed, HTML marker has its own line -->
+            <div class="event-overlay-line" id="event-overlay-line"></div>
             <div class="event-overlay-card">
                 <button class="event-overlay-close-btn" onclick="closeEventCard(event)" title="關閉卡片">
                     <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
@@ -1490,8 +1492,9 @@
 
         function updateOverlayPosition() {
             const overlay = document.getElementById('event-overlay');
+            const line = document.getElementById('event-overlay-line');
             if (!overlay.classList.contains('active') || !currentEventTime) {
-                overlay.style.display = 'none';
+                line.style.opacity = '0';
                 return;
             }
 
@@ -1503,40 +1506,13 @@
             const chartWidth = chartContainer.clientWidth;
 
             if (x === null || x < 0 || x > chartWidth) {
-                overlay.style.display = 'none';
+                line.style.opacity = '0';
                 return;
             }
 
-            // Show overlay and position it
-            overlay.style.display = 'block';
-
-            // The overlay container is 200px wide, centered on x by setting left: x - 100
-            overlay.style.left = `${x - 100}px`;
-
-            // Adjust the card within the overlay if it goes off-screen
-            const card = overlay.querySelector('.event-overlay-card');
-
-            // Reset to center first
-            card.style.left = '50%';
-            card.style.transform = 'translateX(-50%)';
-
-            // Calculate absolute position of the card's center
-            const cardRect = card.getBoundingClientRect();
-            const containerRect = chartContainer.getBoundingClientRect();
-
-            const cardLeftEdge = x - (cardRect.width / 2);
-            const cardRightEdge = x + (cardRect.width / 2);
-
-            // If the card is too close to the left edge of the screen
-            if (cardLeftEdge < 10) {
-                card.style.left = `${100 - x + 10}px`; // Shift right so it's 10px from the left edge of container
-                card.style.transform = 'translateX(0)';
-            }
-            // If the card is too close to the right edge of the screen
-            else if (cardRightEdge > chartWidth - 10) {
-                card.style.left = `${100 + (chartWidth - x) - 10}px`; // Shift left
-                card.style.transform = 'translateX(-100%)';
-            }
+            // Show line and position it
+            line.style.opacity = '1';
+            line.style.left = `${x}px`;
         }
 
         // Update overlay position on scroll/zoom
@@ -1544,6 +1520,69 @@
             updateOverlayPosition();
             updateHtmlMarkersPosition();
         });
+
+        // Drag and Drop Logic for Event Card
+        const eventCard = document.querySelector('.event-overlay-card');
+        let isDragging = false;
+        let dragStartX, dragStartY;
+        let initialCardLeft, initialCardTop;
+
+        function startDrag(e) {
+            // Prevent dragging if clicking the close button
+            if (e.target.closest('.event-overlay-close-btn')) return;
+
+            isDragging = true;
+
+            // Handle both touch and mouse events
+            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+
+            dragStartX = clientX;
+            dragStartY = clientY;
+
+            // If dragging for the first time, convert right to left using offsetLeft
+            if (!eventCard.style.left || eventCard.style.left === 'auto') {
+                eventCard.style.left = eventCard.offsetLeft + 'px';
+                eventCard.style.right = 'auto'; // Disable right
+            }
+            if (!eventCard.style.top || eventCard.style.top === 'auto') {
+                eventCard.style.top = eventCard.offsetTop + 'px';
+            }
+
+            initialCardLeft = parseFloat(eventCard.style.left);
+            initialCardTop = parseFloat(eventCard.style.top);
+
+            // Prevent default behavior to avoid text selection
+            if(e.type === 'mousedown') e.preventDefault();
+        }
+
+        function doDrag(e) {
+            if (!isDragging) return;
+
+            // Prevent scrolling on touch devices while dragging
+            if(e.type === 'touchmove') e.preventDefault();
+
+            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+
+            const deltaX = clientX - dragStartX;
+            const deltaY = clientY - dragStartY;
+
+            eventCard.style.left = (initialCardLeft + deltaX) + 'px';
+            eventCard.style.top = (initialCardTop + deltaY) + 'px';
+        }
+
+        function endDrag() {
+            isDragging = false;
+        }
+
+        eventCard.addEventListener('mousedown', startDrag);
+        document.addEventListener('mousemove', doDrag);
+        document.addEventListener('mouseup', endDrag);
+
+        eventCard.addEventListener('touchstart', startDrag, { passive: false });
+        document.addEventListener('touchmove', doDrag, { passive: false });
+        document.addEventListener('touchend', endDrag);
 
         async function jumpToEvent(dateString) {
             const event = events.find(e => e.date === dateString);
@@ -1587,7 +1626,6 @@
         function resetZoom() {
             chart.timeScale().fitContent();
             renderHtmlMarkers(null);
-            document.getElementById('event-overlay').style.display = 'none';
             document.getElementById('event-overlay').classList.remove('active');
             currentEventTime = null;
         }
@@ -1596,7 +1634,6 @@
             if (event) {
                 event.stopPropagation();
             }
-            document.getElementById('event-overlay').style.display = 'none';
             document.getElementById('event-overlay').classList.remove('active');
             currentEventTime = null;
             renderHtmlMarkers(null);
@@ -1652,6 +1689,13 @@
 
             currentEventTime = targetTime;
             const overlay = document.getElementById('event-overlay');
+            const card = document.querySelector('.event-overlay-card');
+
+            // Reset position to top-right on new open
+            card.style.top = '20px';
+            card.style.right = '20px';
+            card.style.left = 'auto';
+
             overlay.classList.add('active');
             updateOverlayPosition();
         }
