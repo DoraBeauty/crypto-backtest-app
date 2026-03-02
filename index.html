@@ -433,9 +433,16 @@
                 <p style="margin-top: 0; font-size: 14px; color: #888;">為了使用 AI 盤勢分析與歷史事件總結功能，請輸入您的 Google Gemini API Key。您的金鑰僅會安全地儲存在本地瀏覽器中，不會外洩給第三方。</p>
                 <label for="geminiApiKey" style="font-size: 14px; font-weight: bold;">Google Gemini API Key</label>
                 <input type="password" id="geminiApiKey" class="settings-input" placeholder="AIzaSy...">
-                <div style="margin-top: 8px; font-size: 12px;">
+                <div style="margin-top: 8px; margin-bottom: 16px; font-size: 12px;">
                     <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #2962ff; text-decoration: none;">👉 點此免費獲取 Gemini API Key</a>
                 </div>
+
+                <label for="geminiModelName" style="font-size: 14px; font-weight: bold;">API 模型名稱 (Model Name)</label>
+                <input type="text" id="geminiModelName" class="settings-input" placeholder="例如: gemini-1.5-flash">
+                <div style="margin-top: 8px; font-size: 12px; color: #888;">
+                    預設為 <code>gemini-1.5-flash</code>，可依需求更改為 <code>gemini-2.5-flash</code> 等其他模型。
+                </div>
+
                 <div class="settings-btn-group">
                     <button class="settings-btn cancel" onclick="closeSettingsModal()">取消</button>
                     <button class="settings-btn save" onclick="saveSettings()">儲存</button>
@@ -1034,6 +1041,7 @@
 
         async function generateAiCategorySummary() {
             const apiKey = getGeminiApiKey();
+            const modelName = getGeminiModelName();
             if (!apiKey) {
                 openSettingsModal();
                 return;
@@ -1078,7 +1086,7 @@
 ${dataString}
 `;
 
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1161,7 +1169,9 @@ ${dataString}
         // Settings Logic
         function openSettingsModal() {
             const apiKey = localStorage.getItem('gemini_api_key') || '';
+            const modelName = localStorage.getItem('gemini_model_name') || 'gemini-1.5-flash';
             document.getElementById('geminiApiKey').value = apiKey;
+            document.getElementById('geminiModelName').value = modelName;
             document.getElementById('settingsModal').classList.add('active');
         }
 
@@ -1171,13 +1181,21 @@ ${dataString}
 
         function saveSettings() {
             const apiKey = document.getElementById('geminiApiKey').value.trim();
+            let modelName = document.getElementById('geminiModelName').value.trim();
+
+            if (!modelName) {
+                modelName = 'gemini-1.5-flash'; // 預設值
+            }
+
             if (apiKey) {
                 localStorage.setItem('gemini_api_key', apiKey);
-                alert('API Key 儲存成功！');
+                localStorage.setItem('gemini_model_name', modelName);
+                alert('設定儲存成功！');
                 closeSettingsModal();
             } else {
                 localStorage.removeItem('gemini_api_key');
-                alert('API Key 已清除。');
+                localStorage.removeItem('gemini_model_name');
+                alert('設定已清除。');
                 closeSettingsModal();
             }
         }
@@ -1186,9 +1204,14 @@ ${dataString}
             return localStorage.getItem('gemini_api_key');
         }
 
+        function getGeminiModelName() {
+            return localStorage.getItem('gemini_model_name') || 'gemini-1.5-flash';
+        }
+
         // AI Analysis Logic
         async function fetchGeminiAnalysis() {
             const apiKey = getGeminiApiKey();
+            const modelName = getGeminiModelName();
             if (!apiKey) {
                 openSettingsModal();
                 return;
@@ -1237,7 +1260,7 @@ ${dataString}
 ${dataString}
 `;
 
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
