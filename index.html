@@ -388,7 +388,7 @@
                     <h3 style="margin: 0; font-size: 14px; color: #d1d4dc;">📊 歷史回測量化報告</h3>
                     <button class="control-btn" style="background-color: #2962ff; border-color: #1e4bd8; padding: 4px 10px; font-size: 12px;" onclick="generateQuantitativeCategorySummary()" id="generateAiSummaryBtn">產生量化分析</button>
                 </div>
-                <div id="aiCategorySummaryContent" class="ai-analysis-content" style="padding: 0; max-height: 250px; font-size: 13px;">
+                <div id="aiCategorySummaryContent" class="ai-analysis-content" style="padding: 0; max-height: 400px; font-size: 13px;">
                     <!-- Summary will be injected here -->
                 </div>
             </div>
@@ -966,8 +966,11 @@
                 const eventTime = new Date(event.date).getTime() / 1000;
                 const eventTimeMs = eventTime * 1000;
 
-                // 找 30 天與 90 天後的價格 (永遠用日線計算長線變化)
+                // 找 1, 3, 7, 15, 30 天後的價格 (永遠用日線計算長線變化)
+                const day1Data = findPriceAfterDays(dailyData, eventTime, 1);
+                const day3Data = findPriceAfterDays(dailyData, eventTime, 3);
                 const day7Data = findPriceAfterDays(dailyData, eventTime, 7);
+                const day15Data = findPriceAfterDays(dailyData, eventTime, 15);
                 const day30Data = findPriceAfterDays(dailyData, eventTime, 30);
 
                 // 為了「當根K棒變化」，我們需要目前所選的級別的該根K棒
@@ -1010,7 +1013,10 @@
                     date: event.date,
                     price: currentPrice,
                     candleChangePct: candlePercent.toFixed(2),
+                    day1ChangePct: day1Data ? (((day1Data.close - currentPrice) / currentPrice) * 100).toFixed(2) : null,
+                    day3ChangePct: day3Data ? (((day3Data.close - currentPrice) / currentPrice) * 100).toFixed(2) : null,
                     day7ChangePct: day7Data ? (((day7Data.close - currentPrice) / currentPrice) * 100).toFixed(2) : null,
+                    day15ChangePct: day15Data ? (((day15Data.close - currentPrice) / currentPrice) * 100).toFixed(2) : null,
                     day30ChangePct: day30Data ? (((day30Data.close - currentPrice) / currentPrice) * 100).toFixed(2) : null
                 });
 
@@ -1058,86 +1064,194 @@
                 }
 
                 let totalEvents = currentSubCategoryDataForAi.length;
-                let day7UpCount = 0;
-                let day7Sum = 0;
-                let day7ValidEvents = 0;
 
-                let day30UpCount = 0;
-                let day30Sum = 0;
-                let day30ValidEvents = 0;
+                // Timeframes to analyze
+                const timeframes = [1, 3, 7, 15, 30];
+                const metrics = {};
 
-                let maxDay7Gain = -Infinity;
-                let maxDay7Loss = Infinity;
-                let maxGainEventName = '';
-                let maxLossEventName = '';
-
-                currentSubCategoryDataForAi.forEach(d => {
-                    if (d.day7ChangePct !== null) {
-                        const val = parseFloat(d.day7ChangePct);
-                        day7Sum += val;
-                        day7ValidEvents++;
-                        if (val >= 0) day7UpCount++;
-
-                        if (val > maxDay7Gain) {
-                            maxDay7Gain = val;
-                            maxGainEventName = d.name;
-                        }
-                        if (val < maxDay7Loss) {
-                            maxDay7Loss = val;
-                            maxLossEventName = d.name;
-                        }
-                    }
-                    if (d.day30ChangePct !== null) {
-                        const val = parseFloat(d.day30ChangePct);
-                        day30Sum += val;
-                        day30ValidEvents++;
-                        if (val >= 0) day30UpCount++;
-                    }
+                timeframes.forEach(t => {
+                    metrics[t] = {
+                        validCount: 0,
+                        upCount: 0,
+                        sum: 0,
+                        upSum: 0,
+                        downSum: 0,
+                        maxGain: -Infinity,
+                        maxLoss: Infinity,
+                        maxGainName: '',
+                        maxLossName: ''
+                    };
                 });
 
-                if (day7ValidEvents === 0) {
+                currentSubCategoryDataForAi.forEach(d => {
+                    timeframes.forEach(t => {
+                        const key = `day${t}ChangePct`;
+                        if (d[key] !== null && d[key] !== undefined) {
+                            const val = parseFloat(d[key]);
+                            metrics[t].validCount++;
+                            metrics[t].sum += val;
+
+                            if (val >= 0) {
+                                metrics[t].upCount++;
+                                metrics[t].upSum += val;
+                            } else {
+                                metrics[t].downSum += val;
+                            }
+
+                            if (val > metrics[t].maxGain) {
+                                metrics[t].maxGain = val;
+                                metrics[t].maxGainName = d.name;
+                            }
+                            if (val < metrics[t].maxLoss) {
+                                metrics[t].maxLoss = val;
+                                metrics[t].maxLossName = d.name;
+                            }
+                        }
+                    });
+                });
+
+                if (metrics[7].validCount === 0) {
                     throw new Error("目前事件尚無足夠的未來價格資料可供統計。");
                 }
 
-                const day7WinRate = ((day7UpCount / day7ValidEvents) * 100).toFixed(0);
-                const day7AvgReturn = (day7Sum / day7ValidEvents).toFixed(2);
+                // Process metrics
+                const processed = {};
+                timeframes.forEach(t => {
+                    const m = metrics[t];
+                    if (m.validCount > 0) {
+                        const winRate = m.upCount / m.validCount;
+                        const avgReturn = m.sum / m.validCount;
+                        const avgWin = m.upCount > 0 ? m.upSum / m.upCount : 0;
+                        const avgLoss = (m.validCount - m.upCount) > 0 ? m.downSum / (m.validCount - m.upCount) : 0;
 
-                const day30WinRate = day30ValidEvents > 0 ? ((day30UpCount / day30ValidEvents) * 100).toFixed(0) + '%' : '-';
-                const day30AvgReturn = day30ValidEvents > 0 ? (day30Sum / day30ValidEvents).toFixed(2) + '%' : '-';
+                        // Risk/Reward ratio (abs(avgWin) / abs(avgLoss))
+                        let rrRatio = 0;
+                        if (avgLoss !== 0) {
+                            rrRatio = Math.abs(avgWin / avgLoss);
+                        }
 
-                let conclusion = "";
-                let titleColor = "#d1d4dc";
+                        // Expected Value (EV) = (Win Rate * Avg Win) + (Loss Rate * Avg Loss)
+                        const ev = (winRate * avgWin) + ((1 - winRate) * avgLoss);
 
-                if (parseFloat(day7WinRate) >= 60 && parseFloat(day7AvgReturn) > 3) {
-                    conclusion = "短中線表現為多頭，上漲機率與預期報酬較高。";
-                    titleColor = "#00c087";
-                } else if (parseFloat(day7WinRate) <= 40 && parseFloat(day7AvgReturn) < -3) {
-                    conclusion = "短中線表現偏向空頭，發生此類事件後往往伴隨後續跌幅。";
-                    titleColor = "#ff4b4b";
-                } else {
-                    conclusion = "歷史表現呈現震盪，未有明確單邊趨勢，需搭配均線或其他技術指標輔助判斷。";
-                    titleColor = "#FF9800";
+                        processed[t] = {
+                            winRate: (winRate * 100).toFixed(0),
+                            avgReturn: avgReturn.toFixed(2),
+                            avgWin: avgWin.toFixed(2),
+                            avgLoss: avgLoss.toFixed(2),
+                            rrRatio: rrRatio > 0 ? rrRatio.toFixed(2) : '-',
+                            ev: ev.toFixed(2),
+                            maxGain: m.maxGain,
+                            maxLoss: m.maxLoss,
+                            maxGainName: m.maxGainName,
+                            maxLossName: m.maxLossName
+                        };
+                    } else {
+                        processed[t] = null;
+                    }
+                });
+
+                // Determine Pattern Trait based on Short (3d) vs Medium (15d/30d)
+                let patternLabel = "震盪不明";
+                let patternColor = "#FF9800";
+
+                const shortAvg = processed[3] ? parseFloat(processed[3].avgReturn) : 0;
+                const medAvg = processed[15] ? parseFloat(processed[15].avgReturn) : (processed[30] ? parseFloat(processed[30].avgReturn) : 0);
+
+                if (shortAvg > 2 && medAvg > 4) {
+                    patternLabel = "🔥 動能強勁 (持續上漲)";
+                    patternColor = "#00c087";
+                } else if (shortAvg < -2 && medAvg < -4) {
+                    patternLabel = "🩸 動能延續 (持續下跌)";
+                    patternColor = "#ff4b4b";
+                } else if (shortAvg > 2 && medAvg < -1) {
+                    patternLabel = "🎭 獲利了結 (先漲後跌/利多出盡)";
+                    patternColor = "#ff9800";
+                } else if (shortAvg < -2 && medAvg > 1) {
+                    patternLabel = "🚀 利空出盡 (先跌後漲/利空買入)";
+                    patternColor = "#2962ff";
+                } else if (Math.abs(shortAvg) <= 2 && Math.abs(medAvg) <= 2) {
+                    patternLabel = "⚖️ 影響中性 (盤整震盪)";
+                    patternColor = "#787b86";
                 }
 
+                let warningHtml = "";
                 if (totalEvents < 3) {
-                    conclusion += " <strong>(警告：歷史樣本數小於 3，統計數據參考價值有限)</strong>";
+                    warningHtml = `<div style="background: rgba(255,75,75,0.1); border: 1px solid rgba(255,75,75,0.3); color: #ff4b4b; padding: 6px 10px; border-radius: 4px; font-size: 12px; margin-bottom: 12px;">⚠️ 警告：歷史樣本數小於 3，統計數據參考價值有限。</div>`;
                 }
+
+                // Generate Table Rows
+                let tableRows = '';
+                timeframes.forEach(t => {
+                    const p = processed[t];
+                    if (p) {
+                        const winColor = parseFloat(p.winRate) >= 50 ? '#00c087' : '#ff4b4b';
+                        const evColor = parseFloat(p.ev) >= 0 ? '#00c087' : '#ff4b4b';
+                        const avgColor = parseFloat(p.avgReturn) >= 0 ? '#00c087' : '#ff4b4b';
+
+                        tableRows += `
+                            <tr style="border-bottom: 1px solid #2b313f;">
+                                <td style="padding: 6px 8px; color: #d1d4dc;">T+${t}</td>
+                                <td style="padding: 6px 8px; color: ${winColor};">${p.winRate}%</td>
+                                <td style="padding: 6px 8px; color: ${avgColor};">${p.avgReturn > 0 ? '+'+p.avgReturn : p.avgReturn}%</td>
+                                <td style="padding: 6px 8px; color: #00c087;">+${p.avgWin}%</td>
+                                <td style="padding: 6px 8px; color: #ff4b4b;">${p.avgLoss}%</td>
+                                <td style="padding: 6px 8px; color: #e1e3e6;">${p.rrRatio}</td>
+                                <td style="padding: 6px 8px; color: ${evColor}; font-weight: bold;">${p.ev > 0 ? '+'+p.ev : p.ev}%</td>
+                            </tr>
+                        `;
+                    }
+                });
+
+                // Tail Risk (Using 7-day data as standard for short-term tail risk)
+                let tailRiskHtml = '';
+                if (processed[7]) {
+                    const p7 = processed[7];
+                    tailRiskHtml = `
+                        <div style="background: rgba(30, 34, 45, 0.6); padding: 10px; border-radius: 6px; font-size: 12px; margin-top: 10px; border: 1px solid #2b313f;">
+                            <div style="color: #888; margin-bottom: 6px;">⚠️ 歷史極端值 (7天內最大暴風半徑)</div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span>🟢 最佳表現: <span style="color: #d1d4dc;">${p7.maxGainName}</span></span>
+                                <span style="color: #00c087; font-weight: bold;">+${p7.maxGain.toFixed(2)}%</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>🔴 最差表現: <span style="color: #d1d4dc;">${p7.maxLossName}</span></span>
+                                <span style="color: #ff4b4b; font-weight: bold;">${p7.maxLoss.toFixed(2)}%</span>
+                            </div>
+                        </div>
+                    `;
+                }
+
 
                 const htmlContent = `
-                    <h3 style="color: ${titleColor};">📊 ${currentSubCategoryForAi} - 歷史量化總結</h3>
-                    <p style="margin-bottom: 8px;">總共分析了 <strong>${totalEvents}</strong> 筆歷史事件。${conclusion}</p>
+                    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px;">
+                        <h3 style="color: #fff; margin: 0;">📊 專業量化報告</h3>
+                        <span style="font-size: 12px; color: #888;">樣本數: ${totalEvents} 筆</span>
+                    </div>
+                    ${warningHtml}
 
-                    <h4>📈 短中線期望報酬</h4>
-                    <ul style="margin-bottom: 8px;">
-                        <li><strong>7天後：</strong> 上漲勝率 <span style="color: ${parseFloat(day7WinRate) >= 50 ? '#00c087' : '#ff4b4b'}">${day7WinRate}%</span>，平均漲幅 <span style="color: ${parseFloat(day7AvgReturn) >= 0 ? '#00c087' : '#ff4b4b'}">${day7AvgReturn}%</span></li>
-                        <li><strong>30天後：</strong> 上漲勝率 ${day30WinRate}，平均漲幅 ${day30AvgReturn}</li>
-                    </ul>
+                    <div style="margin-bottom: 12px; display: inline-block; background: ${patternColor}20; border: 1px solid ${patternColor}50; color: ${patternColor}; padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: bold;">
+                        ${patternLabel}
+                    </div>
 
-                    <h4>⚠️ 歷史極端值 (7天內)</h4>
-                    <ul>
-                        <li><strong>最佳表現：</strong> ${maxGainEventName} (<span style="color: #00c087">+${maxDay7Gain.toFixed(2)}%</span>)</li>
-                        <li><strong>最差表現：</strong> ${maxLossEventName} (<span style="color: #ff4b4b">${maxDay7Loss.toFixed(2)}%</span>)</li>
-                    </ul>
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; text-align: right; font-size: 12px;">
+                            <thead>
+                                <tr style="background: #131722; color: #787b86; border-bottom: 1px solid #434651;">
+                                    <th style="padding: 6px 8px; text-align: left; font-weight: normal; position: static;">週期</th>
+                                    <th style="padding: 6px 8px; font-weight: normal; position: static;">勝率</th>
+                                    <th style="padding: 6px 8px; font-weight: normal; position: static;">平均報酬</th>
+                                    <th style="padding: 6px 8px; font-weight: normal; position: static;">平均獲利</th>
+                                    <th style="padding: 6px 8px; font-weight: normal; position: static;">平均虧損</th>
+                                    <th style="padding: 6px 8px; font-weight: normal; position: static;">盈虧比</th>
+                                    <th style="padding: 6px 8px; font-weight: normal; position: static;">期望值</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${tableRows}
+                            </tbody>
+                        </table>
+                    </div>
+                    ${tailRiskHtml}
                 `;
 
                 contentDiv.innerHTML = htmlContent;
