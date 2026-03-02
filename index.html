@@ -240,6 +240,98 @@
             flex-direction: column;
             gap: 2px;
         }
+
+        /* Settings Modal Styles */
+        .settings-input {
+            width: 100%;
+            padding: 10px;
+            background-color: #131722;
+            border: 1px solid #434651;
+            color: #d1d4dc;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-top: 8px;
+            box-sizing: border-box;
+            outline: none;
+        }
+        .settings-input:focus {
+            border-color: #2962ff;
+        }
+        .settings-btn-group {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .settings-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            border: none;
+            transition: background-color 0.2s;
+        }
+        .settings-btn.save {
+            background-color: #2962ff;
+            color: white;
+        }
+        .settings-btn.save:hover {
+            background-color: #1e4bd8;
+        }
+        .settings-btn.cancel {
+            background-color: transparent;
+            color: #d1d4dc;
+            border: 1px solid #434651;
+        }
+        .settings-btn.cancel:hover {
+            background-color: #2b313f;
+        }
+
+        /* AI Analysis Modal Styles */
+        .ai-analysis-content {
+            padding: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #d1d4dc;
+            overflow-y: auto;
+            max-height: 60vh;
+        }
+        .ai-analysis-content h3 {
+            color: #fff;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .ai-analysis-content h4 {
+            color: #00c087;
+            margin-top: 15px;
+            margin-bottom: 5px;
+        }
+        .ai-analysis-content ul {
+            margin-top: 0;
+            padding-left: 20px;
+        }
+        .ai-analysis-content p {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .ai-analysis-content strong {
+            color: #fff;
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -263,6 +355,9 @@
                     <div class="price-change" id="price-change"></div>
                 </div>
             </div>
+            <div>
+                <button class="control-btn" onclick="openSettingsModal()" style="padding: 6px 10px; font-size: 16px;" title="API 設定">⚙️</button>
+            </div>
         </div>
         <div class="controls" style="border-bottom: 1px solid #2b3139; padding-bottom: 5px;">
             <select id="event-category-select" style="background-color: #2b3139; color: #d1d4dc; border: 1px solid #434651; padding: 6px 10px; border-radius: 4px; outline: none; font-size: 14px; cursor: pointer; margin-right: 10px;">
@@ -272,6 +367,7 @@
         </div>
         <div class="controls" id="event-buttons">
             <button class="control-btn" onclick="resetZoom()">全貌視角</button>
+            <button class="control-btn" style="background-color: #6a1b9a; border-color: #8e24aa;" onclick="openAiAnalysisModal()">✨ AI 即時解析</button>
         </div>
     </div>
 
@@ -310,6 +406,44 @@
         </div>
     </div>
 
+    <!-- AI Analysis Modal -->
+    <div class="modal-overlay" id="aiAnalysisModal" onclick="if(event.target===this) closeAiAnalysisModal()">
+        <div class="modal-content" style="max-width: 600px;" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>✨ AI 即時盤勢解析</h2>
+                <button class="close-btn" onclick="closeAiAnalysisModal()">&times;</button>
+            </div>
+            <div id="aiAnalysisResult" class="ai-analysis-content">
+                <div style="text-align: center; padding: 40px 0;">
+                    <div class="loading-spinner"></div>
+                    <span>AI 正在分析盤勢，請稍候...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsModal" onclick="if(event.target===this) closeSettingsModal()">
+        <div class="modal-content" style="max-width: 500px;" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>⚙️ API 設定</h2>
+                <button class="close-btn" onclick="closeSettingsModal()">&times;</button>
+            </div>
+            <div style="padding: 20px;">
+                <p style="margin-top: 0; font-size: 14px; color: #888;">為了使用 AI 盤勢分析與歷史事件總結功能，請輸入您的 Google Gemini API Key。您的金鑰僅會安全地儲存在本地瀏覽器中，不會外洩給第三方。</p>
+                <label for="geminiApiKey" style="font-size: 14px; font-weight: bold;">Google Gemini API Key</label>
+                <input type="password" id="geminiApiKey" class="settings-input" placeholder="AIzaSy...">
+                <div style="margin-top: 8px; font-size: 12px;">
+                    <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #2962ff; text-decoration: none;">👉 點此免費獲取 Gemini API Key</a>
+                </div>
+                <div class="settings-btn-group">
+                    <button class="settings-btn cancel" onclick="closeSettingsModal()">取消</button>
+                    <button class="settings-btn save" onclick="saveSettings()">儲存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- SubCategory Modal -->
     <div class="modal-overlay" id="subCategoryModal" onclick="if(event.target===this) closeSubCategoryModal()">
         <div class="modal-content" style="max-height: 80vh;" onclick="event.stopPropagation()">
@@ -317,7 +451,18 @@
                 <h2 id="subCategoryTitle">📊 分類明細</h2>
                 <button class="close-btn" onclick="closeSubCategoryModal()">&times;</button>
             </div>
-            <div class="table-container" style="max-height: 60vh; overflow-y: auto;">
+
+            <div id="aiCategorySummary" style="padding: 15px 20px; border-bottom: 1px solid #2b313f; background: #1a1e26; display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 style="margin: 0; font-size: 14px; color: #d1d4dc;">✨ AI 歷史回測總結</h3>
+                    <button class="control-btn" style="background-color: #6a1b9a; border-color: #8e24aa; padding: 4px 10px; font-size: 12px;" onclick="generateAiCategorySummary()" id="generateAiSummaryBtn">產生 AI 洞察</button>
+                </div>
+                <div id="aiCategorySummaryContent" class="ai-analysis-content" style="padding: 0; max-height: 150px; font-size: 13px;">
+                    <!-- AI Summary will be injected here -->
+                </div>
+            </div>
+
+            <div class="table-container" style="max-height: 50vh; overflow-y: auto;">
                 <table>
                     <thead>
                         <tr>
@@ -772,12 +917,23 @@
             window._cachedDailyData = dailyData;
         }
 
+        let currentSubCategoryForAi = '';
+        let currentSubCategoryDataForAi = [];
+
         async function openSubCategoryModal(subCategoryName) {
+            currentSubCategoryForAi = subCategoryName;
+            currentSubCategoryDataForAi = [];
+
             document.getElementById('subCategoryTitle').innerText = `📊 ${subCategoryName} - 歷史事件`;
             const tbody = document.getElementById('subCategoryTableBody');
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color: #888;">載入中...</td></tr>';
 
             document.getElementById('subCategoryModal').classList.add('active');
+
+            // Reset AI Summary area
+            document.getElementById('aiCategorySummary').style.display = 'block';
+            document.getElementById('aiCategorySummaryContent').innerHTML = '<p style="color: #888; margin: 0;">點擊右上方按鈕，讓 AI 根據下方歷史數據為您總結市場規律。</p>';
+            document.getElementById('generateAiSummaryBtn').style.display = 'block';
 
             const dailyData = window._cachedDailyData || [];
             if (dailyData.length === 0) {
@@ -840,6 +996,16 @@
                     <span style="font-size:11px;color:#787b86">振幅: ${amplitude.toFixed(2)}%</span>
                 `;
 
+                // Collect data for AI
+                currentSubCategoryDataForAi.push({
+                    name: event.name,
+                    date: event.date,
+                    price: currentPrice,
+                    candleChangePct: candlePercent.toFixed(2),
+                    day30ChangePct: day30Data ? (((day30Data.close - currentPrice) / currentPrice) * 100).toFixed(2) : null,
+                    day90ChangePct: day90Data ? (((day90Data.close - currentPrice) / currentPrice) * 100).toFixed(2) : null
+                });
+
                 return `
                     <tr onclick="jumpToEvent('${event.date}'); closeSubCategoryModal(); closeModal()" style="cursor: pointer; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'" onmouseout="this.style.backgroundColor='transparent'">
                         <td style="font-weight: 500;">
@@ -863,6 +1029,99 @@
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">無可用資料</td></tr>';
             } else {
                 tbody.innerHTML = rowsHTML;
+            }
+        }
+
+        async function generateAiCategorySummary() {
+            const apiKey = getGeminiApiKey();
+            if (!apiKey) {
+                openSettingsModal();
+                return;
+            }
+
+            const contentDiv = document.getElementById('aiCategorySummaryContent');
+            const btn = document.getElementById('generateAiSummaryBtn');
+
+            btn.style.display = 'none';
+            contentDiv.innerHTML = `
+                <div style="text-align: center; padding: 20px 0;">
+                    <div class="loading-spinner"></div>
+                    <span>AI 正在分析歷史數據，請稍候...</span>
+                </div>
+            `;
+
+            try {
+                if (currentSubCategoryDataForAi.length === 0) {
+                    throw new Error("沒有足夠的歷史數據可供分析");
+                }
+
+                let dataString = `以下是「${currentSubCategoryForAi}」類型的歷史事件以及當時 ${currentSymbol} 的價格變化：\n\n`;
+                currentSubCategoryDataForAi.forEach(d => {
+                    dataString += `- 事件：${d.name} (${d.date})\n`;
+                    dataString += `  當下價格：$${d.price}\n`;
+                    dataString += `  當下漲跌：${d.candleChangePct}%\n`;
+                    if (d.day30ChangePct !== null) dataString += `  30天後變化：${d.day30ChangePct}%\n`;
+                    if (d.day90ChangePct !== null) dataString += `  90天後變化：${d.day90ChangePct}%\n`;
+                    dataString += `\n`;
+                });
+
+                const promptText = `
+你是一位專業的加密貨幣量化分析師。請根據以下歷史數據，總結「${currentSubCategoryForAi}」這類事件發生時，市場通常的反應規律。
+
+請用簡短、精準的 2-3 個段落回答，包含：
+1. **短期反應 (當下)**：市場通常是恐慌下跌還是慶祝上漲？
+2. **中長期趨勢 (30天/90天)**：事件過後，市場通常會延續趨勢還是反轉？勝率大約如何？
+3. **結論與建議**：給交易員的一句總結建議。
+
+請使用繁體中文，不需要額外的問候語。如果資料太少 (例如只有1-2筆)，請提醒樣本數不足。
+
+${dataString}
+`;
+
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{ text: promptText }]
+                        }],
+                        generationConfig: {
+                            temperature: 0.2,
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API 錯誤`);
+                }
+
+                const data = await response.json();
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (text) {
+                    // Simple Markdown to HTML conversion for the summary
+                    let htmlContent = text
+                        .replace(/^\*\*([^*]+)\*\*(.*)/gim, '<strong>$1</strong>$2')
+                        .replace(/\*\*([^*]+)\*\*/gim, '<strong>$1</strong>')
+                        .replace(/\n\n/gim, '</p><p>')
+                        .replace(/\n/gim, '<br>');
+
+                    contentDiv.innerHTML = `<p style="margin: 0; color: #d1d4dc;">${htmlContent}</p>`;
+                } else {
+                    throw new Error("無法解析 AI 回應");
+                }
+
+            } catch (error) {
+                console.error("AI 總結失敗:", error);
+                contentDiv.innerHTML = `
+                    <div style="color: #ff4b4b; padding: 10px 0; text-align: center;">
+                        <span>❌ AI 分析失敗，請稍後重試</span>
+                    </div>
+                `;
+                btn.style.display = 'block';
+                btn.innerText = '重試';
             }
         }
 
@@ -897,6 +1156,144 @@
 
                 chart.timeScale().setVisibleLogicalRange({ from, to });
             }
+        }
+
+        // Settings Logic
+        function openSettingsModal() {
+            const apiKey = localStorage.getItem('gemini_api_key') || '';
+            document.getElementById('geminiApiKey').value = apiKey;
+            document.getElementById('settingsModal').classList.add('active');
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settingsModal').classList.remove('active');
+        }
+
+        function saveSettings() {
+            const apiKey = document.getElementById('geminiApiKey').value.trim();
+            if (apiKey) {
+                localStorage.setItem('gemini_api_key', apiKey);
+                alert('API Key 儲存成功！');
+                closeSettingsModal();
+            } else {
+                localStorage.removeItem('gemini_api_key');
+                alert('API Key 已清除。');
+                closeSettingsModal();
+            }
+        }
+
+        function getGeminiApiKey() {
+            return localStorage.getItem('gemini_api_key');
+        }
+
+        // AI Analysis Logic
+        async function fetchGeminiAnalysis() {
+            const apiKey = getGeminiApiKey();
+            if (!apiKey) {
+                openSettingsModal();
+                return;
+            }
+
+            const modal = document.getElementById('aiAnalysisModal');
+            const resultContainer = document.getElementById('aiAnalysisResult');
+            modal.classList.add('active');
+
+            resultContainer.innerHTML = `
+                <div style="text-align: center; padding: 40px 0;">
+                    <div class="loading-spinner"></div>
+                    <span>AI 正在分析盤勢，請稍候...</span>
+                </div>
+            `;
+
+            try {
+                // Get recent kline data
+                if (!klineData || klineData.length === 0) {
+                    throw new Error("無 K 線數據可供分析");
+                }
+
+                const recentCandlesCount = Math.min(50, klineData.length);
+                const recentData = klineData.slice(-recentCandlesCount);
+
+                let dataString = `最近 ${recentCandlesCount} 根 K 線數據 (${currentInterval}):\n`;
+                dataString += "時間 | 開盤 | 最高 | 最低 | 收盤 | 成交量\n";
+                recentData.forEach(d => {
+                    const date = new Date(d.time * 1000).toLocaleString();
+                    dataString += `${date} | ${d.open} | ${d.high} | ${d.low} | ${d.close} | ${d.value}\n`;
+                });
+
+                const currentPrice = recentData[recentData.length - 1].close;
+
+                const promptText = `
+你是一位專業的加密貨幣分析師。請根據以下 ${currentSymbol} 的最新 K 線數據（時間級別：${currentInterval}，當前價格：$${currentPrice}），提供一份簡短且精準的盤勢解析。
+
+請包含以下重點：
+1. **整體趨勢解讀**：目前處於多頭、空頭還是盤整？
+2. **關鍵支撐與壓力位**：請根據高低點給出預估的支撐位和壓力位。
+3. **短線多空建議**：偏多操作、偏空操作還是觀望？潛在的風險是什麼？
+
+請使用繁體中文，並以 Markdown 格式排版（例如使用標題、列表和粗體），讓閱讀更清晰。不需要免責聲明，直接給出分析。
+
+以下是數據：
+${dataString}
+`;
+
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{ text: promptText }]
+                        }],
+                        generationConfig: {
+                            temperature: 0.2, // Lower temperature for more analytical/consistent response
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`API 錯誤: ${errorData.error?.message || response.statusText}`);
+                }
+
+                const data = await response.json();
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (text) {
+                    // Simple Markdown to HTML conversion
+                    let htmlContent = text
+                        .replace(/^### (.*$)/gim, '<h4>$1</h4>')
+                        .replace(/^## (.*$)/gim, '<h3>$1</h3>')
+                        .replace(/^\*\*([^*]+)\*\*/gim, '<strong>$1</strong>')
+                        .replace(/\*\*([^*]+)\*\*/gim, '<strong>$1</strong>')
+                        .replace(/^\* (.*$)/gim, '<ul><li>$1</li></ul>')
+                        .replace(/<\/ul>\n<ul>/gim, '')
+                        .replace(/\n/gim, '<br>');
+
+                    resultContainer.innerHTML = htmlContent;
+                } else {
+                    throw new Error("無法解析 AI 回應");
+                }
+
+            } catch (error) {
+                console.error("AI 分析失敗:", error);
+                resultContainer.innerHTML = `
+                    <div style="color: #ff4b4b; padding: 20px; text-align: center;">
+                        <p>❌ AI 分析失敗</p>
+                        <p style="font-size: 12px; color: #888;">${error.message}</p>
+                        <button class="settings-btn cancel" style="margin-top: 10px;" onclick="fetchGeminiAnalysis()">重試</button>
+                    </div>
+                `;
+            }
+        }
+
+        function openAiAnalysisModal() {
+            fetchGeminiAnalysis();
+        }
+
+        function closeAiAnalysisModal() {
+            document.getElementById('aiAnalysisModal').classList.remove('active');
         }
 
         // Asset Switching Logic
@@ -952,8 +1349,11 @@
         const buttonContainer = document.getElementById('event-buttons');
 
         function renderEventButtons(categoryFilter = 'all') {
-            // Keep the "全貌視角" button
-            buttonContainer.innerHTML = '<button class="control-btn" onclick="resetZoom()">全貌視角</button>';
+            // Keep the "全貌視角" and "AI即時解析" button
+            buttonContainer.innerHTML = `
+                <button class="control-btn" onclick="resetZoom()">全貌視角</button>
+                <button class="control-btn" style="background-color: #6a1b9a; border-color: #8e24aa;" onclick="openAiAnalysisModal()">✨ AI 即時解析</button>
+            `;
 
             const filteredEvents = categoryFilter === 'all' ? events : events.filter(e => e.category === categoryFilter);
 
