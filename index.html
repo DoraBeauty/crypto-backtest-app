@@ -241,53 +241,6 @@
             gap: 2px;
         }
 
-        /* Settings Modal Styles */
-        .settings-input {
-            width: 100%;
-            padding: 10px;
-            background-color: #131722;
-            border: 1px solid #434651;
-            color: #d1d4dc;
-            border-radius: 6px;
-            font-size: 14px;
-            margin-top: 8px;
-            box-sizing: border-box;
-            outline: none;
-        }
-        .settings-input:focus {
-            border-color: #2962ff;
-        }
-        .settings-btn-group {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        .settings-btn {
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            border: none;
-            transition: background-color 0.2s;
-        }
-        .settings-btn.save {
-            background-color: #2962ff;
-            color: white;
-        }
-        .settings-btn.save:hover {
-            background-color: #1e4bd8;
-        }
-        .settings-btn.cancel {
-            background-color: transparent;
-            color: #d1d4dc;
-            border: 1px solid #434651;
-        }
-        .settings-btn.cancel:hover {
-            background-color: #2b313f;
-        }
-
         /* AI Analysis Modal Styles */
         .ai-analysis-content {
             padding: 20px;
@@ -356,9 +309,6 @@
                 </div>
             </div>
             <div>
-                <button class="control-btn" onclick="openSettingsModal()" style="padding: 6px 10px; font-size: 16px;" title="API 設定">⚙️</button>
-            </div>
-        </div>
         <div class="controls" style="border-bottom: 1px solid #2b3139; padding-bottom: 5px;">
             <select id="event-category-select" style="background-color: #2b3139; color: #d1d4dc; border: 1px solid #434651; padding: 6px 10px; border-radius: 4px; outline: none; font-size: 14px; cursor: pointer; margin-right: 10px;">
                 <option value="all">所有事件</option>
@@ -367,7 +317,7 @@
         </div>
         <div class="controls" id="event-buttons">
             <button class="control-btn" onclick="resetZoom()">全貌視角</button>
-            <button class="control-btn" style="background-color: #6a1b9a; border-color: #8e24aa;" onclick="openAiAnalysisModal()">✨ AI 即時解析</button>
+            <button class="control-btn" style="background-color: #6a1b9a; border-color: #8e24aa;" onclick="openAiAnalysisModal()">📈 盤勢量化解析</button>
         </div>
     </div>
 
@@ -410,46 +360,18 @@
     <div class="modal-overlay" id="aiAnalysisModal" onclick="if(event.target===this) closeAiAnalysisModal()">
         <div class="modal-content" style="max-width: 600px;" onclick="event.stopPropagation()">
             <div class="modal-header">
-                <h2>✨ AI 即時盤勢解析</h2>
+                <h2>📈 當前盤勢短線量化解析</h2>
                 <button class="close-btn" onclick="closeAiAnalysisModal()">&times;</button>
             </div>
             <div id="aiAnalysisResult" class="ai-analysis-content">
                 <div style="text-align: center; padding: 40px 0;">
                     <div class="loading-spinner"></div>
-                    <span>AI 正在分析盤勢，請稍候...</span>
+                    <span>系統正在計算量化數據，請稍候...</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Settings Modal -->
-    <div class="modal-overlay" id="settingsModal" onclick="if(event.target===this) closeSettingsModal()">
-        <div class="modal-content" style="max-width: 500px;" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <h2>⚙️ API 設定</h2>
-                <button class="close-btn" onclick="closeSettingsModal()">&times;</button>
-            </div>
-            <div style="padding: 20px;">
-                <p style="margin-top: 0; font-size: 14px; color: #888;">為了使用 AI 盤勢分析與歷史事件總結功能，請輸入您的 Google Gemini API Key。您的金鑰僅會安全地儲存在本地瀏覽器中，不會外洩給第三方。</p>
-                <label for="geminiApiKey" style="font-size: 14px; font-weight: bold;">Google Gemini API Key</label>
-                <input type="password" id="geminiApiKey" class="settings-input" placeholder="AIzaSy...">
-                <div style="margin-top: 8px; margin-bottom: 16px; font-size: 12px;">
-                    <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #2962ff; text-decoration: none;">👉 點此免費獲取 Gemini API Key</a>
-                </div>
-
-                <label for="geminiModelName" style="font-size: 14px; font-weight: bold;">API 模型名稱 (Model Name)</label>
-                <input type="text" id="geminiModelName" class="settings-input" placeholder="例如: gemini-1.5-flash">
-                <div style="margin-top: 8px; font-size: 12px; color: #888;">
-                    預設為 <code>gemini-1.5-flash</code>，可依需求更改為 <code>gemini-2.5-flash</code> 等其他模型。
-                </div>
-
-                <div class="settings-btn-group">
-                    <button class="settings-btn cancel" onclick="closeSettingsModal()">取消</button>
-                    <button class="settings-btn save" onclick="saveSettings()">儲存</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- SubCategory Modal -->
     <div class="modal-overlay" id="subCategoryModal" onclick="if(event.target===this) closeSubCategoryModal()">
@@ -461,11 +383,11 @@
 
             <div id="aiCategorySummary" style="padding: 15px 20px; border-bottom: 1px solid #2b313f; background: #1a1e26; display: none;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <h3 style="margin: 0; font-size: 14px; color: #d1d4dc;">✨ AI 歷史回測總結</h3>
-                    <button class="control-btn" style="background-color: #6a1b9a; border-color: #8e24aa; padding: 4px 10px; font-size: 12px;" onclick="generateAiCategorySummary()" id="generateAiSummaryBtn">產生 AI 洞察</button>
+                    <h3 style="margin: 0; font-size: 14px; color: #d1d4dc;">📊 歷史回測量化報告</h3>
+                    <button class="control-btn" style="background-color: #2962ff; border-color: #1e4bd8; padding: 4px 10px; font-size: 12px;" onclick="generateAiCategorySummary()" id="generateAiSummaryBtn">產生量化分析</button>
                 </div>
-                <div id="aiCategorySummaryContent" class="ai-analysis-content" style="padding: 0; max-height: 150px; font-size: 13px;">
-                    <!-- AI Summary will be injected here -->
+                <div id="aiCategorySummaryContent" class="ai-analysis-content" style="padding: 0; max-height: 250px; font-size: 13px;">
+                    <!-- Summary will be injected here -->
                 </div>
             </div>
 
@@ -937,9 +859,9 @@
 
             document.getElementById('subCategoryModal').classList.add('active');
 
-            // Reset AI Summary area
+            // Reset Summary area
             document.getElementById('aiCategorySummary').style.display = 'block';
-            document.getElementById('aiCategorySummaryContent').innerHTML = '<p style="color: #888; margin: 0;">點擊右上方按鈕，讓 AI 根據下方歷史數據為您總結市場規律。</p>';
+            document.getElementById('aiCategorySummaryContent').innerHTML = '<p style="color: #888; margin: 0;">點擊右上方按鈕，系統將自動為您計算此類事件的量化勝率與歷史規律。</p>';
             document.getElementById('generateAiSummaryBtn').style.display = 'block';
 
             const dailyData = window._cachedDailyData || [];
@@ -1040,13 +962,6 @@
         }
 
         async function generateAiCategorySummary() {
-            const apiKey = getGeminiApiKey();
-            const modelName = getGeminiModelName();
-            if (!apiKey) {
-                openSettingsModal();
-                return;
-            }
-
             const contentDiv = document.getElementById('aiCategorySummaryContent');
             const btn = document.getElementById('generateAiSummaryBtn');
 
@@ -1054,7 +969,7 @@
             contentDiv.innerHTML = `
                 <div style="text-align: center; padding: 20px 0;">
                     <div class="loading-spinner"></div>
-                    <span>AI 正在分析歷史數據，請稍候...</span>
+                    <span>系統正在計算量化數據，請稍候...</span>
                 </div>
             `;
 
@@ -1063,69 +978,96 @@
                     throw new Error("沒有足夠的歷史數據可供分析");
                 }
 
-                let dataString = `以下是「${currentSubCategoryForAi}」類型的歷史事件以及當時 ${currentSymbol} 的價格變化：\n\n`;
+                let totalEvents = currentSubCategoryDataForAi.length;
+                let day30UpCount = 0;
+                let day30Sum = 0;
+                let day30ValidEvents = 0;
+
+                let day90UpCount = 0;
+                let day90Sum = 0;
+                let day90ValidEvents = 0;
+
+                let maxDay30Gain = -Infinity;
+                let maxDay30Loss = Infinity;
+                let maxGainEventName = '';
+                let maxLossEventName = '';
+
                 currentSubCategoryDataForAi.forEach(d => {
-                    dataString += `- 事件：${d.name} (${d.date})\n`;
-                    dataString += `  當下價格：$${d.price}\n`;
-                    dataString += `  當下漲跌：${d.candleChangePct}%\n`;
-                    if (d.day30ChangePct !== null) dataString += `  30天後變化：${d.day30ChangePct}%\n`;
-                    if (d.day90ChangePct !== null) dataString += `  90天後變化：${d.day90ChangePct}%\n`;
-                    dataString += `\n`;
-                });
+                    if (d.day30ChangePct !== null) {
+                        const val = parseFloat(d.day30ChangePct);
+                        day30Sum += val;
+                        day30ValidEvents++;
+                        if (val >= 0) day30UpCount++;
 
-                const promptText = `
-你是一位專業的加密貨幣量化分析師。請根據以下歷史數據，總結「${currentSubCategoryForAi}」這類事件發生時，市場通常的反應規律。
-
-請用簡短、精準的 2-3 個段落回答，包含：
-1. **短期反應 (當下)**：市場通常是恐慌下跌還是慶祝上漲？
-2. **中長期趨勢 (30天/90天)**：事件過後，市場通常會延續趨勢還是反轉？勝率大約如何？
-3. **結論與建議**：給交易員的一句總結建議。
-
-請使用繁體中文，不需要額外的問候語。如果資料太少 (例如只有1-2筆)，請提醒樣本數不足。
-
-${dataString}
-`;
-
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        contents: [{
-                            parts: [{ text: promptText }]
-                        }],
-                        generationConfig: {
-                            temperature: 0.2,
+                        if (val > maxDay30Gain) {
+                            maxDay30Gain = val;
+                            maxGainEventName = d.name;
                         }
-                    })
+                        if (val < maxDay30Loss) {
+                            maxDay30Loss = val;
+                            maxLossEventName = d.name;
+                        }
+                    }
+                    if (d.day90ChangePct !== null) {
+                        const val = parseFloat(d.day90ChangePct);
+                        day90Sum += val;
+                        day90ValidEvents++;
+                        if (val >= 0) day90UpCount++;
+                    }
                 });
 
-                if (!response.ok) {
-                    throw new Error(`API 錯誤`);
+                if (day30ValidEvents === 0) {
+                    throw new Error("目前事件尚無足夠的未來價格資料可供統計。");
                 }
 
-                const data = await response.json();
-                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                const day30WinRate = ((day30UpCount / day30ValidEvents) * 100).toFixed(0);
+                const day30AvgReturn = (day30Sum / day30ValidEvents).toFixed(2);
 
-                if (text) {
-                    // Simple Markdown to HTML conversion for the summary
-                    let htmlContent = text
-                        .replace(/^\*\*([^*]+)\*\*(.*)/gim, '<strong>$1</strong>$2')
-                        .replace(/\*\*([^*]+)\*\*/gim, '<strong>$1</strong>')
-                        .replace(/\n\n/gim, '</p><p>')
-                        .replace(/\n/gim, '<br>');
+                const day90WinRate = day90ValidEvents > 0 ? ((day90UpCount / day90ValidEvents) * 100).toFixed(0) + '%' : '-';
+                const day90AvgReturn = day90ValidEvents > 0 ? (day90Sum / day90ValidEvents).toFixed(2) + '%' : '-';
 
-                    contentDiv.innerHTML = `<p style="margin: 0; color: #d1d4dc;">${htmlContent}</p>`;
+                let conclusion = "";
+                let titleColor = "#d1d4dc";
+
+                if (parseFloat(day30WinRate) >= 60 && parseFloat(day30AvgReturn) > 5) {
+                    conclusion = "中長線表現為強勢多頭，上漲機率與預期報酬皆高。";
+                    titleColor = "#00c087";
+                } else if (parseFloat(day30WinRate) <= 40 && parseFloat(day30AvgReturn) < -5) {
+                    conclusion = "中長線表現偏向空頭，發生此類事件後往往伴隨後續跌幅。";
+                    titleColor = "#ff4b4b";
                 } else {
-                    throw new Error("無法解析 AI 回應");
+                    conclusion = "歷史表現呈現震盪，未有明確單邊趨勢，需搭配均線或其他技術指標輔助判斷。";
+                    titleColor = "#FF9800";
                 }
+
+                if (totalEvents < 3) {
+                    conclusion += " <strong>(警告：歷史樣本數小於 3，統計數據參考價值有限)</strong>";
+                }
+
+                const htmlContent = `
+                    <h3 style="color: ${titleColor};">📊 ${currentSubCategoryForAi} - 歷史量化總結</h3>
+                    <p style="margin-bottom: 8px;">總共分析了 <strong>${totalEvents}</strong> 筆歷史事件。${conclusion}</p>
+
+                    <h4>📈 中長線期望報酬</h4>
+                    <ul style="margin-bottom: 8px;">
+                        <li><strong>30天後：</strong> 上漲勝率 <span style="color: ${parseFloat(day30WinRate) >= 50 ? '#00c087' : '#ff4b4b'}">${day30WinRate}%</span>，平均漲幅 <span style="color: ${parseFloat(day30AvgReturn) >= 0 ? '#00c087' : '#ff4b4b'}">${day30AvgReturn}%</span></li>
+                        <li><strong>90天後：</strong> 上漲勝率 ${day90WinRate}，平均漲幅 ${day90AvgReturn}</li>
+                    </ul>
+
+                    <h4>⚠️ 歷史極端值 (30天內)</h4>
+                    <ul>
+                        <li><strong>最佳表現：</strong> ${maxGainEventName} (<span style="color: #00c087">+${maxDay30Gain.toFixed(2)}%</span>)</li>
+                        <li><strong>最差表現：</strong> ${maxLossEventName} (<span style="color: #ff4b4b">${maxDay30Loss.toFixed(2)}%</span>)</li>
+                    </ul>
+                `;
+
+                contentDiv.innerHTML = htmlContent;
 
             } catch (error) {
-                console.error("AI 總結失敗:", error);
+                console.error("量化總結失敗:", error);
                 contentDiv.innerHTML = `
                     <div style="color: #ff4b4b; padding: 10px 0; text-align: center;">
-                        <span>❌ AI 分析失敗，請稍後重試</span>
+                        <span>❌ 分析失敗: ${error.message}</span>
                     </div>
                 `;
                 btn.style.display = 'block';
@@ -1166,146 +1108,104 @@ ${dataString}
             }
         }
 
-        // Settings Logic
-        function openSettingsModal() {
-            const apiKey = localStorage.getItem('gemini_api_key') || '';
-            const modelName = localStorage.getItem('gemini_model_name') || 'gemini-1.5-flash';
-            document.getElementById('geminiApiKey').value = apiKey;
-            document.getElementById('geminiModelName').value = modelName;
-            document.getElementById('settingsModal').classList.add('active');
-        }
-
-        function closeSettingsModal() {
-            document.getElementById('settingsModal').classList.remove('active');
-        }
-
-        function saveSettings() {
-            const apiKey = document.getElementById('geminiApiKey').value.trim();
-            let modelName = document.getElementById('geminiModelName').value.trim();
-
-            if (!modelName) {
-                modelName = 'gemini-1.5-flash'; // 預設值
-            }
-
-            if (apiKey) {
-                localStorage.setItem('gemini_api_key', apiKey);
-                localStorage.setItem('gemini_model_name', modelName);
-                alert('設定儲存成功！');
-                closeSettingsModal();
-            } else {
-                localStorage.removeItem('gemini_api_key');
-                localStorage.removeItem('gemini_model_name');
-                alert('設定已清除。');
-                closeSettingsModal();
-            }
-        }
-
-        function getGeminiApiKey() {
-            return localStorage.getItem('gemini_api_key');
-        }
-
-        function getGeminiModelName() {
-            return localStorage.getItem('gemini_model_name') || 'gemini-1.5-flash';
-        }
-
+        // AI Analysis Logic
         // AI Analysis Logic
         async function fetchGeminiAnalysis() {
-            const apiKey = getGeminiApiKey();
-            const modelName = getGeminiModelName();
-            if (!apiKey) {
-                openSettingsModal();
-                return;
-            }
-
-            const modal = document.getElementById('aiAnalysisModal');
-            const resultContainer = document.getElementById('aiAnalysisResult');
-            modal.classList.add('active');
-
-            resultContainer.innerHTML = `
-                <div style="text-align: center; padding: 40px 0;">
-                    <div class="loading-spinner"></div>
-                    <span>AI 正在分析盤勢，請稍候...</span>
-                </div>
-            `;
+            const modal = document.getElementById("aiAnalysisModal");
+            const resultContainer = document.getElementById("aiAnalysisResult");
+            modal.classList.add("active");
 
             try {
-                // Get recent kline data
-                if (!klineData || klineData.length === 0) {
-                    throw new Error("無 K 線數據可供分析");
+                if (!klineData || klineData.length < 60) {
+                    throw new Error("資料量不足，無法計算完整的均線與技術指標 (需至少 60 根 K 線)");
                 }
 
-                const recentCandlesCount = Math.min(50, klineData.length);
-                const recentData = klineData.slice(-recentCandlesCount);
+                // 計算 MA20 和 MA60
+                const calculateMA = (data, period) => {
+                    let sum = 0;
+                    for (let i = data.length - period; i < data.length; i++) {
+                        sum += data[i].close;
+                    }
+                    return sum / period;
+                };
 
-                let dataString = `最近 ${recentCandlesCount} 根 K 線數據 (${currentInterval}):\n`;
-                dataString += "時間 | 開盤 | 最高 | 最低 | 收盤 | 成交量\n";
+                const currentPrice = klineData[klineData.length - 1].close;
+                const ma20 = calculateMA(klineData, 20);
+                const ma60 = calculateMA(klineData, 60);
+                const prevMa20 = calculateMA(klineData.slice(0, -1), 20);
+                const prevMa60 = calculateMA(klineData.slice(0, -1), 60);
+
+                // 計算最近 30 根的支撐與壓力 (高低點)
+                const recentData = klineData.slice(-30);
+                let recentHigh = -Infinity;
+                let recentLow = Infinity;
                 recentData.forEach(d => {
-                    const date = new Date(d.time * 1000).toLocaleString();
-                    dataString += `${date} | ${d.open} | ${d.high} | ${d.low} | ${d.close} | ${d.value}\n`;
+                    if (d.high > recentHigh) recentHigh = d.high;
+                    if (d.low < recentLow) recentLow = d.low;
                 });
 
-                const currentPrice = recentData[recentData.length - 1].close;
+                // 判斷趨勢
+                let trendTitle = "盤整中";
+                let trendDesc = "目前價格在均線之間震盪，趨勢不明確。";
+                let trendColor = "#FF9800"; // Orange
+                let advice = "觀望";
 
-                const promptText = `
-你是一位專業的加密貨幣分析師。請根據以下 ${currentSymbol} 的最新 K 線數據（時間級別：${currentInterval}，當前價格：$${currentPrice}），提供一份簡短且精準的盤勢解析。
-
-請包含以下重點：
-1. **整體趨勢解讀**：目前處於多頭、空頭還是盤整？
-2. **關鍵支撐與壓力位**：請根據高低點給出預估的支撐位和壓力位。
-3. **短線多空建議**：偏多操作、偏空操作還是觀望？潛在的風險是什麼？
-
-請使用繁體中文，並以 Markdown 格式排版（例如使用標題、列表和粗體），讓閱讀更清晰。不需要免責聲明，直接給出分析。
-
-以下是數據：
-${dataString}
-`;
-
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        contents: [{
-                            parts: [{ text: promptText }]
-                        }],
-                        generationConfig: {
-                            temperature: 0.2, // Lower temperature for more analytical/consistent response
-                        }
-                    })
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(`API 錯誤: ${errorData.error?.message || response.statusText}`);
+                if (currentPrice > ma20 && ma20 > ma60) {
+                    trendTitle = "強勢多頭";
+                    trendDesc = "價格站穩 MA20，且 MA20 大於 MA60 (多頭排列)。";
+                    trendColor = "#00c087"; // Green
+                    advice = "偏多操作，以 MA20 作為防守線。";
+                } else if (currentPrice < ma20 && ma20 < ma60) {
+                    trendTitle = "弱勢空頭";
+                    trendDesc = "價格跌破 MA20，且 MA20 小於 MA60 (空頭排列)。";
+                    trendColor = "#ff4b4b"; // Red
+                    advice = "偏空操作，反彈遇 MA20 壓力可視為風險。";
+                } else if (currentPrice > ma20 && ma20 < ma60) {
+                    trendTitle = "短線反彈";
+                    trendDesc = "大趨勢偏空，但短線價格已突破 MA20。";
+                    trendColor = "#FF9800";
+                    advice = "可嘗試短多，目標看 MA60 壓力位。";
+                } else if (currentPrice < ma20 && ma20 > ma60) {
+                    trendTitle = "短線回調";
+                    trendDesc = "大趨勢偏多，但短線價格跌破 MA20。";
+                    trendColor = "#FF9800";
+                    advice = "關注下方 MA60 或近期低點的支撐力道。";
                 }
 
-                const data = await response.json();
-                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-                if (text) {
-                    // Simple Markdown to HTML conversion
-                    let htmlContent = text
-                        .replace(/^### (.*$)/gim, '<h4>$1</h4>')
-                        .replace(/^## (.*$)/gim, '<h3>$1</h3>')
-                        .replace(/^\*\*([^*]+)\*\*/gim, '<strong>$1</strong>')
-                        .replace(/\*\*([^*]+)\*\*/gim, '<strong>$1</strong>')
-                        .replace(/^\* (.*$)/gim, '<ul><li>$1</li></ul>')
-                        .replace(/<\/ul>\n<ul>/gim, '')
-                        .replace(/\n/gim, '<br>');
-
-                    resultContainer.innerHTML = htmlContent;
-                } else {
-                    throw new Error("無法解析 AI 回應");
+                // 判斷是否剛發生交叉
+                let crossEvent = "";
+                if (prevMa20 <= prevMa60 && ma20 > ma60) {
+                    crossEvent = "⚠️ <strong>近期訊號：</strong> 剛發生 <strong>MA20/MA60 黃金交叉</strong>，為中長線看多訊號！<br>";
+                } else if (prevMa20 >= prevMa60 && ma20 < ma60) {
+                    crossEvent = "⚠️ <strong>近期訊號：</strong> 剛發生 <strong>MA20/MA60 死亡交叉</strong>，為中長線看空訊號！<br>";
                 }
+
+                const htmlContent = `
+                    <h3>當前 ${currentSymbol} 量化分析 (${currentInterval})</h3>
+                    <p style="font-size: 16px;"><strong>趨勢判定： <span style="color: ${trendColor}">${trendTitle}</span></strong></p>
+                    <p>${crossEvent}${trendDesc}</p>
+
+                    <h4>📍 關鍵價位 (基於近30根K線)</h4>
+                    <ul>
+                        <li><strong>當前價格：</strong> $${currentPrice.toLocaleString(undefined, {maximumFractionDigits:2})}</li>
+                        <li><strong>近期高點 (壓力位)：</strong> <span style="color: #ff4b4b">$${recentHigh.toLocaleString(undefined, {maximumFractionDigits:2})}</span></li>
+                        <li><strong>近期低點 (支撐位)：</strong> <span style="color: #00c087">$${recentLow.toLocaleString(undefined, {maximumFractionDigits:2})}</span></li>
+                        <li><strong>MA20 均線：</strong> $${ma20.toLocaleString(undefined, {maximumFractionDigits:2})}</li>
+                        <li><strong>MA60 均線：</strong> $${ma60.toLocaleString(undefined, {maximumFractionDigits:2})}</li>
+                    </ul>
+
+                    <h4>💡 系統短線建議</h4>
+                    <p>${advice}</p>
+                `;
+
+                resultContainer.innerHTML = htmlContent;
 
             } catch (error) {
-                console.error("AI 分析失敗:", error);
+                console.error("量化分析失敗:", error);
                 resultContainer.innerHTML = `
                     <div style="color: #ff4b4b; padding: 20px; text-align: center;">
-                        <p>❌ AI 分析失敗</p>
+                        <p>❌ 分析失敗</p>
                         <p style="font-size: 12px; color: #888;">${error.message}</p>
-                        <button class="settings-btn cancel" style="margin-top: 10px;" onclick="fetchGeminiAnalysis()">重試</button>
                     </div>
                 `;
             }
@@ -1372,10 +1272,10 @@ ${dataString}
         const buttonContainer = document.getElementById('event-buttons');
 
         function renderEventButtons(categoryFilter = 'all') {
-            // Keep the "全貌視角" and "AI即時解析" button
+            // Keep the "全貌視角" and "量化解析" button
             buttonContainer.innerHTML = `
                 <button class="control-btn" onclick="resetZoom()">全貌視角</button>
-                <button class="control-btn" style="background-color: #6a1b9a; border-color: #8e24aa;" onclick="openAiAnalysisModal()">✨ AI 即時解析</button>
+                <button class="control-btn" style="background-color: #6a1b9a; border-color: #8e24aa;" onclick="openAiAnalysisModal()">📈 盤勢量化解析</button>
             `;
 
             const filteredEvents = categoryFilter === 'all' ? events : events.filter(e => e.category === categoryFilter);
