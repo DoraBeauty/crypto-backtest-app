@@ -339,11 +339,11 @@
                         <thead>
                             <tr style="color: #888; border-bottom: 1px solid #2b313f;">
                                 <th style="text-align: left; padding: 4px 8px 4px 0; font-weight: normal;">事件類型</th>
+                                <th style="padding: 4px 8px; font-weight: normal;">1天後</th>
                                 <th style="padding: 4px 8px; font-weight: normal;">3天後</th>
                                 <th style="padding: 4px 8px; font-weight: normal;">7天後</th>
                                 <th style="padding: 4px 8px; font-weight: normal;">15天後</th>
-                                <th style="padding: 4px 8px; font-weight: normal;">30天後</th>
-                                <th style="padding: 4px 0 4px 8px; font-weight: normal;">90天後</th>
+                                <th style="padding: 4px 0 4px 8px; font-weight: normal;">30天後</th>
                             </tr>
                         </thead>
                         <tbody id="prediction-content">
@@ -398,8 +398,8 @@
                             <th>事件 / 日期</th>
                             <th style="text-align: right;">當下價格</th>
                             <th style="text-align: right;">當根K棒變化</th>
+                            <th style="text-align: right;">七天後變化</th>
                             <th style="text-align: right;">一個月後變化</th>
-                            <th style="text-align: right;">三個月後變化</th>
                         </tr>
                     </thead>
                     <tbody id="subCategoryTableBody">
@@ -842,7 +842,7 @@
             subCategories.forEach(cat => {
                 categoryData[cat] = {
                     count: 0,
-                    returns: { 3: [], 7: [], 15: [], 30: [], 90: [] }
+                    returns: { 1: [], 3: [], 7: [], 15: [], 30: [] }
                 };
             });
 
@@ -856,7 +856,7 @@
                 const cat = event.subCategory || event.category;
                 categoryData[cat].count++;
 
-                [3, 7, 15, 30, 90].forEach(days => {
+                [1, 3, 7, 15, 30].forEach(days => {
                     const futureData = findPriceAfterDays(dailyData, eventTime, days);
                     if (futureData && futureData.close) {
                         const futurePrice = futureData.close;
@@ -900,9 +900,9 @@
                         ${cat} <span style="color: #888; font-size: 10px; font-weight: normal; margin-left: 2px;">(${data.count})</span>
                     </td>`;
 
-                [3, 7, 15, 30, 90].forEach(days => {
+                [1, 3, 7, 15, 30].forEach(days => {
                     const avg = data.averages[days];
-                    let paddingStr = days === 90 ? 'padding: 6px 0 6px 8px;' : 'padding: 6px 8px;';
+                    let paddingStr = days === 30 ? 'padding: 6px 0 6px 8px;' : 'padding: 6px 8px;';
 
                     if (avg !== null) {
                         const numAvg = parseFloat(avg);
@@ -965,8 +965,8 @@
                 const eventTimeMs = eventTime * 1000;
 
                 // 找 30 天與 90 天後的價格 (永遠用日線計算長線變化)
+                const day7Data = findPriceAfterDays(dailyData, eventTime, 7);
                 const day30Data = findPriceAfterDays(dailyData, eventTime, 30);
-                const day90Data = findPriceAfterDays(dailyData, eventTime, 90);
 
                 // 為了「當根K棒變化」，我們需要目前所選的級別的該根K棒
                 // 先在目前載入的圖表資料裡找找看 (近期的事件可能已經在裡面了)
@@ -1008,8 +1008,8 @@
                     date: event.date,
                     price: currentPrice,
                     candleChangePct: candlePercent.toFixed(2),
-                    day30ChangePct: day30Data ? (((day30Data.close - currentPrice) / currentPrice) * 100).toFixed(2) : null,
-                    day90ChangePct: day90Data ? (((day90Data.close - currentPrice) / currentPrice) * 100).toFixed(2) : null
+                    day7ChangePct: day7Data ? (((day7Data.close - currentPrice) / currentPrice) * 100).toFixed(2) : null,
+                    day30ChangePct: day30Data ? (((day30Data.close - currentPrice) / currentPrice) * 100).toFixed(2) : null
                 });
 
                 return `
@@ -1022,8 +1022,8 @@
                             $${currentPrice.toLocaleString(undefined, {maximumFractionDigits:0})}
                         </td>
                         <td style="text-align: right;">${candleStatsHTML}</td>
+                        <td style="text-align: right;">${day7Data ? formatChange(currentPrice, day7Data.close) : '<span style="color:#787b86">-</span>'}</td>
                         <td style="text-align: right;">${day30Data ? formatChange(currentPrice, day30Data.close) : '<span style="color:#787b86">-</span>'}</td>
-                        <td style="text-align: right;">${day90Data ? formatChange(currentPrice, day90Data.close) : '<span style="color:#787b86">-</span>'}</td>
                     </tr>
                 `;
             });
@@ -1056,61 +1056,61 @@
                 }
 
                 let totalEvents = currentSubCategoryDataForAi.length;
+                let day7UpCount = 0;
+                let day7Sum = 0;
+                let day7ValidEvents = 0;
+
                 let day30UpCount = 0;
                 let day30Sum = 0;
                 let day30ValidEvents = 0;
 
-                let day90UpCount = 0;
-                let day90Sum = 0;
-                let day90ValidEvents = 0;
-
-                let maxDay30Gain = -Infinity;
-                let maxDay30Loss = Infinity;
+                let maxDay7Gain = -Infinity;
+                let maxDay7Loss = Infinity;
                 let maxGainEventName = '';
                 let maxLossEventName = '';
 
                 currentSubCategoryDataForAi.forEach(d => {
+                    if (d.day7ChangePct !== null) {
+                        const val = parseFloat(d.day7ChangePct);
+                        day7Sum += val;
+                        day7ValidEvents++;
+                        if (val >= 0) day7UpCount++;
+
+                        if (val > maxDay7Gain) {
+                            maxDay7Gain = val;
+                            maxGainEventName = d.name;
+                        }
+                        if (val < maxDay7Loss) {
+                            maxDay7Loss = val;
+                            maxLossEventName = d.name;
+                        }
+                    }
                     if (d.day30ChangePct !== null) {
                         const val = parseFloat(d.day30ChangePct);
                         day30Sum += val;
                         day30ValidEvents++;
                         if (val >= 0) day30UpCount++;
-
-                        if (val > maxDay30Gain) {
-                            maxDay30Gain = val;
-                            maxGainEventName = d.name;
-                        }
-                        if (val < maxDay30Loss) {
-                            maxDay30Loss = val;
-                            maxLossEventName = d.name;
-                        }
-                    }
-                    if (d.day90ChangePct !== null) {
-                        const val = parseFloat(d.day90ChangePct);
-                        day90Sum += val;
-                        day90ValidEvents++;
-                        if (val >= 0) day90UpCount++;
                     }
                 });
 
-                if (day30ValidEvents === 0) {
+                if (day7ValidEvents === 0) {
                     throw new Error("目前事件尚無足夠的未來價格資料可供統計。");
                 }
 
-                const day30WinRate = ((day30UpCount / day30ValidEvents) * 100).toFixed(0);
-                const day30AvgReturn = (day30Sum / day30ValidEvents).toFixed(2);
+                const day7WinRate = ((day7UpCount / day7ValidEvents) * 100).toFixed(0);
+                const day7AvgReturn = (day7Sum / day7ValidEvents).toFixed(2);
 
-                const day90WinRate = day90ValidEvents > 0 ? ((day90UpCount / day90ValidEvents) * 100).toFixed(0) + '%' : '-';
-                const day90AvgReturn = day90ValidEvents > 0 ? (day90Sum / day90ValidEvents).toFixed(2) + '%' : '-';
+                const day30WinRate = day30ValidEvents > 0 ? ((day30UpCount / day30ValidEvents) * 100).toFixed(0) + '%' : '-';
+                const day30AvgReturn = day30ValidEvents > 0 ? (day30Sum / day30ValidEvents).toFixed(2) + '%' : '-';
 
                 let conclusion = "";
                 let titleColor = "#d1d4dc";
 
-                if (parseFloat(day30WinRate) >= 60 && parseFloat(day30AvgReturn) > 5) {
-                    conclusion = "中長線表現為強勢多頭，上漲機率與預期報酬皆高。";
+                if (parseFloat(day7WinRate) >= 60 && parseFloat(day7AvgReturn) > 3) {
+                    conclusion = "短中線表現為多頭，上漲機率與預期報酬較高。";
                     titleColor = "#00c087";
-                } else if (parseFloat(day30WinRate) <= 40 && parseFloat(day30AvgReturn) < -5) {
-                    conclusion = "中長線表現偏向空頭，發生此類事件後往往伴隨後續跌幅。";
+                } else if (parseFloat(day7WinRate) <= 40 && parseFloat(day7AvgReturn) < -3) {
+                    conclusion = "短中線表現偏向空頭，發生此類事件後往往伴隨後續跌幅。";
                     titleColor = "#ff4b4b";
                 } else {
                     conclusion = "歷史表現呈現震盪，未有明確單邊趨勢，需搭配均線或其他技術指標輔助判斷。";
@@ -1125,16 +1125,16 @@
                     <h3 style="color: ${titleColor};">📊 ${currentSubCategoryForAi} - 歷史量化總結</h3>
                     <p style="margin-bottom: 8px;">總共分析了 <strong>${totalEvents}</strong> 筆歷史事件。${conclusion}</p>
 
-                    <h4>📈 中長線期望報酬</h4>
+                    <h4>📈 短中線期望報酬</h4>
                     <ul style="margin-bottom: 8px;">
-                        <li><strong>30天後：</strong> 上漲勝率 <span style="color: ${parseFloat(day30WinRate) >= 50 ? '#00c087' : '#ff4b4b'}">${day30WinRate}%</span>，平均漲幅 <span style="color: ${parseFloat(day30AvgReturn) >= 0 ? '#00c087' : '#ff4b4b'}">${day30AvgReturn}%</span></li>
-                        <li><strong>90天後：</strong> 上漲勝率 ${day90WinRate}，平均漲幅 ${day90AvgReturn}</li>
+                        <li><strong>7天後：</strong> 上漲勝率 <span style="color: ${parseFloat(day7WinRate) >= 50 ? '#00c087' : '#ff4b4b'}">${day7WinRate}%</span>，平均漲幅 <span style="color: ${parseFloat(day7AvgReturn) >= 0 ? '#00c087' : '#ff4b4b'}">${day7AvgReturn}%</span></li>
+                        <li><strong>30天後：</strong> 上漲勝率 ${day30WinRate}，平均漲幅 ${day30AvgReturn}</li>
                     </ul>
 
-                    <h4>⚠️ 歷史極端值 (30天內)</h4>
+                    <h4>⚠️ 歷史極端值 (7天內)</h4>
                     <ul>
-                        <li><strong>最佳表現：</strong> ${maxGainEventName} (<span style="color: #00c087">+${maxDay30Gain.toFixed(2)}%</span>)</li>
-                        <li><strong>最差表現：</strong> ${maxLossEventName} (<span style="color: #ff4b4b">${maxDay30Loss.toFixed(2)}%</span>)</li>
+                        <li><strong>最佳表現：</strong> ${maxGainEventName} (<span style="color: #00c087">+${maxDay7Gain.toFixed(2)}%</span>)</li>
+                        <li><strong>最差表現：</strong> ${maxLossEventName} (<span style="color: #ff4b4b">${maxDay7Loss.toFixed(2)}%</span>)</li>
                     </ul>
                 `;
 
@@ -1390,11 +1390,11 @@
             filteredEvents.forEach(event => {
                 const targetTime = new Date(event.date).getTime() / 1000;
                 const currentData = findPriceAfterDays(dataSource, targetTime, 0);
-                const day30Data = findPriceAfterDays(dataSource, targetTime, 30);
+                const day7Data = findPriceAfterDays(dataSource, targetTime, 7);
 
-                if (currentData && day30Data) {
+                if (currentData && day7Data) {
                     totalEvaluated++;
-                    if (day30Data.close >= currentData.close) {
+                    if (day7Data.close >= currentData.close) {
                         upCount++;
                     } else {
                         downCount++;
@@ -1405,9 +1405,9 @@
             if (totalEvaluated > 0) {
                 const upProb = ((upCount / totalEvaluated) * 100).toFixed(0);
                 const downProb = ((downCount / totalEvaluated) * 100).toFixed(0);
-                statsEl.innerHTML = ` ( 30天後統計: <span style="color:#00c087">上漲 ${upProb}%</span> / <span style="color:#ff4b4b">下跌 ${downProb}%</span> )`;
+                statsEl.innerHTML = ` ( 7天後統計: <span style="color:#00c087">上漲 ${upProb}%</span> / <span style="color:#ff4b4b">下跌 ${downProb}%</span> )`;
             } else {
-                statsEl.innerHTML = ` ( 30天後統計: 尚無完整資料 )`;
+                statsEl.innerHTML = ` ( 7天後統計: 尚無完整資料 )`;
             }
         }
 
@@ -1608,7 +1608,7 @@
 
             const currentData = findPriceAfterDays(klineData, targetTime, 0);
             const dailyData = dailyKlineDataCache[currentSymbol] || klineData;
-            const day30Data = findPriceAfterDays(dailyData, targetTime, 30);
+            const day7Data = findPriceAfterDays(dailyData, targetTime, 7);
 
             const titleEl = document.getElementById('overlay-title');
             const dateEl = document.getElementById('overlay-date');
@@ -1618,16 +1618,16 @@
             titleEl.innerText = event.name;
             dateEl.innerText = event.date;
 
-            if (currentData && day30Data) {
-                const diff = day30Data.close - currentData.close;
+            if (currentData && day7Data) {
+                const diff = day7Data.close - currentData.close;
                 const percent = ((diff / currentData.close) * 100).toFixed(2);
                 const isUp = diff >= 0;
                 const sign = isUp ? '+' : '';
                 changeEl.className = 'event-overlay-change ' + (isUp ? 'up' : 'down');
-                changeEl.innerText = `30天後: ${sign}${percent}%`;
+                changeEl.innerText = `7天後: ${sign}${percent}%`;
             } else {
                 changeEl.className = 'event-overlay-change';
-                changeEl.innerText = '30天後: 無資料';
+                changeEl.innerText = '7天後: 無資料';
                 changeEl.style.color = '#787b86';
             }
 
