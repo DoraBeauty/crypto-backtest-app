@@ -308,7 +308,7 @@
                     <div class="price-change" id="price-change"></div>
                 </div>
             </div>
-            <div>
+        </div>
         <div class="controls" style="border-bottom: 1px solid #2b3139; padding-bottom: 5px;">
             <select id="event-category-select" style="background-color: #2b3139; color: #d1d4dc; border: 1px solid #434651; padding: 6px 10px; border-radius: 4px; outline: none; font-size: 14px; cursor: pointer; margin-right: 10px;">
                 <option value="all">所有事件</option>
@@ -384,7 +384,7 @@
             <div id="aiCategorySummary" style="padding: 15px 20px; border-bottom: 1px solid #2b313f; background: #1a1e26; display: none;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <h3 style="margin: 0; font-size: 14px; color: #d1d4dc;">📊 歷史回測量化報告</h3>
-                    <button class="control-btn" style="background-color: #2962ff; border-color: #1e4bd8; padding: 4px 10px; font-size: 12px;" onclick="generateAiCategorySummary()" id="generateAiSummaryBtn">產生量化分析</button>
+                    <button class="control-btn" style="background-color: #2962ff; border-color: #1e4bd8; padding: 4px 10px; font-size: 12px;" onclick="generateQuantitativeCategorySummary()" id="generateAiSummaryBtn">產生量化分析</button>
                 </div>
                 <div id="aiCategorySummaryContent" class="ai-analysis-content" style="padding: 0; max-height: 250px; font-size: 13px;">
                     <!-- Summary will be injected here -->
@@ -961,7 +961,7 @@
             }
         }
 
-        async function generateAiCategorySummary() {
+        async function generateQuantitativeCategorySummary() {
             const contentDiv = document.getElementById('aiCategorySummaryContent');
             const btn = document.getElementById('generateAiSummaryBtn');
 
@@ -1109,15 +1109,14 @@
         }
 
         // AI Analysis Logic
-        // AI Analysis Logic
-        async function fetchGeminiAnalysis() {
+        async function fetchQuantitativeAnalysis() {
             const modal = document.getElementById("aiAnalysisModal");
             const resultContainer = document.getElementById("aiAnalysisResult");
             modal.classList.add("active");
 
             try {
-                if (!klineData || klineData.length < 60) {
-                    throw new Error("資料量不足，無法計算完整的均線與技術指標 (需至少 60 根 K 線)");
+                if (!klineData || klineData.length < 61) {
+                    throw new Error("資料量不足，無法計算完整的均線與技術指標 (需至少 61 根 K 線)");
                 }
 
                 // 計算 MA20 和 MA60
@@ -1212,7 +1211,7 @@
         }
 
         function openAiAnalysisModal() {
-            fetchGeminiAnalysis();
+            fetchQuantitativeAnalysis();
         }
 
         function closeAiAnalysisModal() {
