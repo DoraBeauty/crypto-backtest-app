@@ -243,7 +243,7 @@
             gap: 2px;
         }
 
-        /* AI Analysis Modal Styles */
+        /* SubCategory Modal AI Summary Styles (Reusing old ai-analysis classes) */
         .ai-analysis-content {
             padding: 20px;
             font-size: 14px;
@@ -319,7 +319,6 @@
         </div>
         <div class="controls" id="event-buttons">
             <button class="control-btn" onclick="resetZoom()">全貌視角</button>
-            <button class="control-btn" style="background-color: #6a1b9a; border-color: #8e24aa;" onclick="openAiAnalysisModal()">📈 盤勢量化解析</button>
         </div>
     </div>
 
@@ -357,23 +356,6 @@
             </div>
         </div>
     </div>
-
-    <!-- AI Analysis Modal -->
-    <div class="modal-overlay" id="aiAnalysisModal" onclick="if(event.target===this) closeAiAnalysisModal()">
-        <div class="modal-content" style="max-width: 600px;" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <h2>📈 當前盤勢短線量化解析</h2>
-                <button class="close-btn" onclick="closeAiAnalysisModal()">&times;</button>
-            </div>
-            <div id="aiAnalysisResult" class="ai-analysis-content">
-                <div style="text-align: center; padding: 40px 0;">
-                    <div class="loading-spinner"></div>
-                    <span>系統正在計算量化數據，請稍候...</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
 
     <!-- SubCategory Modal -->
     <div class="modal-overlay" id="subCategoryModal" onclick="if(event.target===this) closeSubCategoryModal()">
@@ -430,6 +412,10 @@
                 <div class="event-overlay-date" id="overlay-date"></div>
                 <div class="event-overlay-change" id="overlay-change"></div>
                 <div class="event-overlay-candle-stats" id="overlay-candle-stats"></div>
+                <div class="event-overlay-nav" id="overlay-nav">
+                    <button id="nav-prev-btn" onclick="navigateEvent('prev', event)">⬅️ 前一筆</button>
+                    <button id="nav-next-btn" onclick="navigateEvent('next', event)">後一筆 ➡️</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1301,116 +1287,6 @@
             }
         }
 
-        // AI Analysis Logic
-        async function fetchQuantitativeAnalysis() {
-            const modal = document.getElementById("aiAnalysisModal");
-            const resultContainer = document.getElementById("aiAnalysisResult");
-            modal.classList.add("active");
-
-            try {
-                if (!klineData || klineData.length < 61) {
-                    throw new Error("資料量不足，無法計算完整的均線與技術指標 (需至少 61 根 K 線)");
-                }
-
-                // 計算 MA20 和 MA60
-                const calculateMA = (data, period) => {
-                    let sum = 0;
-                    for (let i = data.length - period; i < data.length; i++) {
-                        sum += data[i].close;
-                    }
-                    return sum / period;
-                };
-
-                const currentPrice = klineData[klineData.length - 1].close;
-                const ma20 = calculateMA(klineData, 20);
-                const ma60 = calculateMA(klineData, 60);
-                const prevMa20 = calculateMA(klineData.slice(0, -1), 20);
-                const prevMa60 = calculateMA(klineData.slice(0, -1), 60);
-
-                // 計算最近 30 根的支撐與壓力 (高低點)
-                const recentData = klineData.slice(-30);
-                let recentHigh = -Infinity;
-                let recentLow = Infinity;
-                recentData.forEach(d => {
-                    if (d.high > recentHigh) recentHigh = d.high;
-                    if (d.low < recentLow) recentLow = d.low;
-                });
-
-                // 判斷趨勢
-                let trendTitle = "盤整中";
-                let trendDesc = "目前價格在均線之間震盪，趨勢不明確。";
-                let trendColor = "#FF9800"; // Orange
-                let advice = "觀望";
-
-                if (currentPrice > ma20 && ma20 > ma60) {
-                    trendTitle = "強勢多頭";
-                    trendDesc = "價格站穩 MA20，且 MA20 大於 MA60 (多頭排列)。";
-                    trendColor = "#00c087"; // Green
-                    advice = "偏多操作，以 MA20 作為防守線。";
-                } else if (currentPrice < ma20 && ma20 < ma60) {
-                    trendTitle = "弱勢空頭";
-                    trendDesc = "價格跌破 MA20，且 MA20 小於 MA60 (空頭排列)。";
-                    trendColor = "#ff4b4b"; // Red
-                    advice = "偏空操作，反彈遇 MA20 壓力可視為風險。";
-                } else if (currentPrice > ma20 && ma20 < ma60) {
-                    trendTitle = "短線反彈";
-                    trendDesc = "大趨勢偏空，但短線價格已突破 MA20。";
-                    trendColor = "#FF9800";
-                    advice = "可嘗試短多，目標看 MA60 壓力位。";
-                } else if (currentPrice < ma20 && ma20 > ma60) {
-                    trendTitle = "短線回調";
-                    trendDesc = "大趨勢偏多，但短線價格跌破 MA20。";
-                    trendColor = "#FF9800";
-                    advice = "關注下方 MA60 或近期低點的支撐力道。";
-                }
-
-                // 判斷是否剛發生交叉
-                let crossEvent = "";
-                if (prevMa20 <= prevMa60 && ma20 > ma60) {
-                    crossEvent = "⚠️ <strong>近期訊號：</strong> 剛發生 <strong>MA20/MA60 黃金交叉</strong>，為中長線看多訊號！<br>";
-                } else if (prevMa20 >= prevMa60 && ma20 < ma60) {
-                    crossEvent = "⚠️ <strong>近期訊號：</strong> 剛發生 <strong>MA20/MA60 死亡交叉</strong>，為中長線看空訊號！<br>";
-                }
-
-                const htmlContent = `
-                    <h3>當前 ${currentSymbol} 量化分析 (${currentInterval})</h3>
-                    <p style="font-size: 16px;"><strong>趨勢判定： <span style="color: ${trendColor}">${trendTitle}</span></strong></p>
-                    <p>${crossEvent}${trendDesc}</p>
-
-                    <h4>📍 關鍵價位 (基於近30根K線)</h4>
-                    <ul>
-                        <li><strong>當前價格：</strong> $${currentPrice.toLocaleString(undefined, {maximumFractionDigits:2})}</li>
-                        <li><strong>近期高點 (壓力位)：</strong> <span style="color: #ff4b4b">$${recentHigh.toLocaleString(undefined, {maximumFractionDigits:2})}</span></li>
-                        <li><strong>近期低點 (支撐位)：</strong> <span style="color: #00c087">$${recentLow.toLocaleString(undefined, {maximumFractionDigits:2})}</span></li>
-                        <li><strong>MA20 均線：</strong> $${ma20.toLocaleString(undefined, {maximumFractionDigits:2})}</li>
-                        <li><strong>MA60 均線：</strong> $${ma60.toLocaleString(undefined, {maximumFractionDigits:2})}</li>
-                    </ul>
-
-                    <h4>💡 系統短線建議</h4>
-                    <p>${advice}</p>
-                `;
-
-                resultContainer.innerHTML = htmlContent;
-
-            } catch (error) {
-                console.error("量化分析失敗:", error);
-                resultContainer.innerHTML = `
-                    <div style="color: #ff4b4b; padding: 20px; text-align: center;">
-                        <p>❌ 分析失敗</p>
-                        <p style="font-size: 12px; color: #888;">${error.message}</p>
-                    </div>
-                `;
-            }
-        }
-
-        function openAiAnalysisModal() {
-            fetchQuantitativeAnalysis();
-        }
-
-        function closeAiAnalysisModal() {
-            document.getElementById('aiAnalysisModal').classList.remove('active');
-        }
-
         // Asset Switching Logic
         function switchSymbol(symbol) {
             if (currentSymbol === symbol) return;
@@ -1464,10 +1340,9 @@
         const buttonContainer = document.getElementById('event-buttons');
 
         function renderEventButtons(categoryFilter = 'all') {
-            // Keep the "全貌視角" and "量化解析" button
+            // Keep the "全貌視角" button
             buttonContainer.innerHTML = `
                 <button class="control-btn" onclick="resetZoom()">全貌視角</button>
-                <button class="control-btn" style="background-color: #6a1b9a; border-color: #8e24aa;" onclick="openAiAnalysisModal()">📈 盤勢量化解析</button>
             `;
 
             const filteredEvents = categoryFilter === 'all' ? events : events.filter(e => e.category === categoryFilter);
@@ -1642,8 +1517,8 @@
         let initialCardLeft, initialCardTop;
 
         function startDrag(e) {
-            // Prevent dragging if clicking the close button
-            if (e.target.closest('.event-overlay-close-btn')) return;
+            // Prevent dragging if clicking the close button or nav buttons
+            if (e.target.closest('.event-overlay-close-btn') || e.target.closest('.event-overlay-nav')) return;
 
             isDragging = true;
 
@@ -1802,6 +1677,36 @@
             }
 
             currentEventTime = targetTime;
+
+            // Timeline Navigation Logic
+            const currentFilter = document.getElementById('event-category-select').value;
+            const filteredEvents = currentFilter === 'all' ? events : events.filter(e => e.category === currentFilter);
+
+            // Sort events by date to ensure proper timeline
+            const sortedEvents = [...filteredEvents].sort((a, b) => new Date(a.date) - new Date(b.date));
+            const currentIndex = sortedEvents.findIndex(e => e.date === event.date);
+
+            const prevBtn = document.getElementById('nav-prev-btn');
+            const nextBtn = document.getElementById('nav-next-btn');
+
+            if (prevBtn && nextBtn) {
+                if (currentIndex > 0) {
+                    prevBtn.disabled = false;
+                    prevBtn.dataset.targetDate = sortedEvents[currentIndex - 1].date;
+                } else {
+                    prevBtn.disabled = true;
+                    prevBtn.dataset.targetDate = '';
+                }
+
+                if (currentIndex !== -1 && currentIndex < sortedEvents.length - 1) {
+                    nextBtn.disabled = false;
+                    nextBtn.dataset.targetDate = sortedEvents[currentIndex + 1].date;
+                } else {
+                    nextBtn.disabled = true;
+                    nextBtn.dataset.targetDate = '';
+                }
+            }
+
             const overlay = document.getElementById('event-overlay');
             const card = document.querySelector('.event-overlay-card');
 
@@ -1812,6 +1717,16 @@
 
             overlay.classList.add('active');
             updateOverlayPosition();
+        }
+
+        function navigateEvent(direction, e) {
+            // Prevent event card from hiding automatically during navigation or dragging
+            if (e) e.stopPropagation();
+
+            const btn = document.getElementById(`nav-${direction}-btn`);
+            if (btn && btn.dataset.targetDate && !btn.disabled) {
+                jumpToEvent(btn.dataset.targetDate);
+            }
         }
 
         // Event listener for clicking on the chart to hide event cards
