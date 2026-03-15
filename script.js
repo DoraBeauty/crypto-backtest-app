@@ -210,72 +210,75 @@ function processQuoteData(indicatorId, result) {
 }
 
 /**
- * Fetches latest quotes for all indicators using a free CORS proxy.
+ * Fetches a single quote with retry logic and delays to prevent rate limiting from the free CORS proxy.
+ * @param {string} indicatorId - The ID of the indicator
+ * @param {string} symbol - The Yahoo Finance symbol
+ * @param {number} retries - Number of retry attempts left
  */
-async function fetchLatestQuotes() {
-    // Using an alternative CORS proxy for Yahoo Finance v8 API which is more stable
-    // Yahoo Finance API endpoint: https://query1.finance.yahoo.com/v8/finance/chart/[symbol]
+async function fetchQuoteWithRetry(indicatorId, symbol, retries = 3) {
+    const yfUrl = encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}`);
+    const apiUrl = `https://api.allorigins.win/get?url=${yfUrl}`;
 
     try {
-        // Fetch each symbol individually because v8 chart API prefers single symbols
-        const promises = Object.entries(symbolsMap).map(async ([indicatorId, symbol]) => {
-            const yfUrl = encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}`);
-            // Use allorigins to bypass CORS. We use the /get endpoint which returns JSON with a 'contents' string
-            const apiUrl = `https://api.allorigins.win/get?url=${yfUrl}`;
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error(`Network response was not ok for ${symbol}`);
 
-            try {
-                const response = await fetch(apiUrl);
-                if (!response.ok) throw new Error(`Network response was not ok for ${symbol}`);
+        const responseData = await response.json();
 
-                const responseData = await response.json();
+        if (!responseData.contents) {
+            throw new Error(`No contents found for ${symbol}`);
+        }
 
-                // allorigins returns the actual JSON payload inside the "contents" string
-                if (!responseData.contents) {
-                    throw new Error(`No contents found for ${symbol}`);
-                }
+        let parsedData;
+        try {
+            parsedData = JSON.parse(responseData.contents);
+        } catch (e) {
+            throw new Error(`Failed to parse JSON for ${symbol}. Proxy returned: ${responseData.contents.substring(0, 50)}`);
+        }
 
-                let parsedData;
-                try {
-                    parsedData = JSON.parse(responseData.contents);
-                } catch (e) {
-                    throw new Error(`Failed to parse JSON for ${symbol}`);
-                }
+        if (parsedData && parsedData.chart && parsedData.chart.result && parsedData.chart.result.length > 0) {
+            const resultData = parsedData.chart.result[0].meta;
 
-                if (parsedData && parsedData.chart && parsedData.chart.result && parsedData.chart.result.length > 0) {
-                    const resultData = parsedData.chart.result[0].meta;
-                    // Format it to match our existing processing logic
-                    return {
-                        indicatorId: indicatorId,
-                        result: {
-                            symbol: resultData.symbol,
-                            regularMarketPrice: resultData.regularMarketPrice,
-                            regularMarketPreviousClose: resultData.chartPreviousClose,
-                            regularMarketTime: resultData.regularMarketTime
-                        }
-                    };
-                }
-                throw new Error(`Invalid data format for ${symbol}`);
-            } catch (err) {
-                console.error(`Error fetching data for ${symbol}:`, err);
-                // 顯示錯誤訊息在 UI 上
-                const timeSpan = document.getElementById(`time-${indicatorId}`);
-                if (timeSpan) {
-                    timeSpan.innerHTML = `<span class="text-neutral">無法載入數據，請稍後再試</span>`;
-                }
-                return null;
+            // Format and process the data
+            processQuoteData(indicatorId, {
+                symbol: resultData.symbol,
+                regularMarketPrice: resultData.regularMarketPrice,
+                regularMarketPreviousClose: resultData.chartPreviousClose,
+                regularMarketTime: resultData.regularMarketTime
+            });
+            return true; // Success
+        }
+        throw new Error(`Invalid data format for ${symbol}`);
+    } catch (err) {
+        console.error(`Error fetching data for ${symbol} (Retries left: ${retries}):`, err.message);
+
+        if (retries > 0) {
+            // Wait 1 second before retrying
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            return fetchQuoteWithRetry(indicatorId, symbol, retries - 1);
+        } else {
+            // Out of retries, show error on UI
+            const timeSpan = document.getElementById(`time-${indicatorId}`);
+            if (timeSpan) {
+                timeSpan.innerHTML = `<span class="text-neutral">無法載入數據，請稍後再試</span>`;
             }
-        });
+            return false; // Failed
+        }
+    }
+}
 
-        const results = await Promise.all(promises);
+/**
+ * Fetches latest quotes for all indicators sequentially to avoid proxy rate limits.
+ */
+async function fetchLatestQuotes() {
+    const entries = Object.entries(symbolsMap);
 
-        results.forEach(item => {
-            if (item && item.indicatorId && item.result) {
-                processQuoteData(item.indicatorId, item.result);
-            }
-        });
+    for (const [indicatorId, symbol] of entries) {
+        // Fetch sequentially and await to avoid slamming the free proxy
+        await fetchQuoteWithRetry(indicatorId, symbol);
 
-    } catch (error) {
-        console.error('Error in fetchLatestQuotes:', error);
+        // Wait 500ms between each successful request to be nice to the proxy
+        await new Promise(resolve => setTimeout(resolve, 500));
     }
 }
 
