@@ -296,6 +296,14 @@ async function fetchQuoteWithRetry(indicatorId, symbol, retries = 3) {
  * Fetches latest quotes for all indicators sequentially to avoid proxy rate limits.
  */
 async function fetchLatestQuotes() {
+    // Show loading indicators before fetching
+    Object.keys(symbolsMap).forEach(indicatorId => {
+        const timeSpan = document.getElementById(`time-${indicatorId}`);
+        if (timeSpan) {
+            timeSpan.innerHTML = `<i class="fas fa-spinner fa-spin"></i> 載入數據中...`;
+        }
+    });
+
     const entries = Object.entries(symbolsMap);
 
     for (const [indicatorId, symbol] of entries) {
