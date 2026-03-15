@@ -7,6 +7,24 @@ const sentimentState = {
     yield: 'neutral'
 };
 
+// Track whether the user has manually overridden the trend for a specific indicator
+const manualOverrideState = {
+    vix: false,
+    dxy: false,
+    oil: false,
+    gold: false,
+    yield: false
+};
+
+// Mapping of indicators to Yahoo Finance symbols
+const symbolsMap = {
+    vix: '^VIX',
+    dxy: 'DX-Y.NYB',
+    oil: 'CL=F',   // Crude Oil Futures
+    gold: 'GC=F',  // Gold Futures
+    yield: '^TNX'  // 10-Year Treasury Note Yield
+};
+
 /**
  * Toggles the visibility of the details section for a given indicator card.
  * @param {string} indicatorId - The ID of the indicator (e.g., 'vix', 'dxy').
@@ -29,15 +47,25 @@ function toggleDetails(indicatorId) {
  * Sets the trend for an indicator and recalculates overall sentiment.
  * @param {string} indicatorId - The ID of the indicator.
  * @param {string} trend - 'up', 'neutral', or 'down'.
+ * @param {boolean} isManual - Whether the change was triggered manually by the user.
  */
-function setTrend(indicatorId, trend) {
+function setTrend(indicatorId, trend, isManual = true) {
+    // If it's an auto-update but the user has already manually overridden it, ignore the auto-update
+    if (!isManual && manualOverrideState[indicatorId]) {
+        return;
+    }
+
+    if (isManual) {
+        manualOverrideState[indicatorId] = true;
+    }
+
     // 1. Update visual state of buttons within the specific card
     const card = document.getElementById(`card-${indicatorId}`);
     const buttons = card.querySelectorAll('.trend-btn');
 
     buttons.forEach(btn => btn.classList.remove('active'));
 
-    // Find the clicked button and add 'active' class
+    // Find the clicked/target button and add 'active' class
     const selectedBtn = card.querySelector(`.trend-btn.${trend}`);
     if (selectedBtn) {
         selectedBtn.classList.add('active');
@@ -128,8 +156,141 @@ function updateDashboardUI(riskOff, riskOn, neutralCount) {
     }
 }
 
+/**
+ * Formats a Unix timestamp into a readable local time string.
+ * @param {number} unixTime - Timestamp in seconds
+ * @returns {string} Formatted time string
+ */
+function formatTime(unixTime) {
+    if (!unixTime) return '';
+    const date = new Date(unixTime * 1000);
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    const hh = String(date.getHours()).padStart(2, '0');
+    const min = String(date.getMinutes()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
+}
+
+/**
+ * Updates the UI with fetched data and determines the trend.
+ * @param {string} indicatorId - The ID of the indicator
+ * @param {object} result - The parsed quote result from Yahoo Finance
+ */
+function processQuoteData(indicatorId, result) {
+    if (!result || !result.regularMarketPrice || !result.regularMarketPreviousClose) return;
+
+    const currentPrice = result.regularMarketPrice;
+    const prevClose = result.regularMarketPreviousClose;
+    const timestamp = result.regularMarketTime;
+
+    // Calculate percentage change
+    const percentChange = ((currentPrice - prevClose) / prevClose) * 100;
+
+    // Determine trend (threshold ±0.5%)
+    let autoTrend = 'neutral';
+    if (percentChange > 0.5) {
+        autoTrend = 'up';
+    } else if (percentChange < -0.5) {
+        autoTrend = 'down';
+    }
+
+    // Update trend (will be ignored if user manually overrode)
+    setTrend(indicatorId, autoTrend, false);
+
+    // Update timestamp and price in UI
+    const timeSpan = document.getElementById(`time-${indicatorId}`);
+    if (timeSpan) {
+        const timeStr = formatTime(timestamp);
+        const changeStr = percentChange > 0 ? `+${percentChange.toFixed(2)}%` : `${percentChange.toFixed(2)}%`;
+        const colorClass = percentChange > 0 ? 'text-up' : (percentChange < 0 ? 'text-down' : 'text-neutral');
+
+        timeSpan.innerHTML = `更新時間: ${timeStr} <span class="${colorClass}">(${changeStr})</span>`;
+    }
+}
+
+/**
+ * Fetches latest quotes for all indicators using a free CORS proxy.
+ */
+async function fetchLatestQuotes() {
+    // Using an alternative CORS proxy for Yahoo Finance v8 API which is more stable
+    // Yahoo Finance API endpoint: https://query1.finance.yahoo.com/v8/finance/chart/[symbol]
+
+    try {
+        // Fetch each symbol individually because v8 chart API prefers single symbols
+        const promises = Object.entries(symbolsMap).map(async ([indicatorId, symbol]) => {
+            const yfUrl = encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}`);
+            const apiUrl = `https://corsproxy.io/?url=${yfUrl}`;
+
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) throw new Error(`Network response was not ok for ${symbol}`);
+
+                const parsedData = await response.json();
+
+                if (parsedData && parsedData.chart && parsedData.chart.result && parsedData.chart.result.length > 0) {
+                    const resultData = parsedData.chart.result[0].meta;
+                    // Format it to match our existing processing logic
+                    return {
+                        indicatorId: indicatorId,
+                        result: {
+                            symbol: resultData.symbol,
+                            regularMarketPrice: resultData.regularMarketPrice,
+                            regularMarketPreviousClose: resultData.chartPreviousClose,
+                            regularMarketTime: resultData.regularMarketTime
+                        }
+                    };
+                }
+                return null;
+            } catch (err) {
+                console.error(`Error fetching data for ${symbol}:`, err);
+                return null;
+            }
+        });
+
+        const results = await Promise.all(promises);
+
+        results.forEach(item => {
+            if (item && item.indicatorId && item.result) {
+                processQuoteData(item.indicatorId, item.result);
+            }
+        });
+
+    } catch (error) {
+        console.error('Error in fetchLatestQuotes:', error);
+    }
+}
+
+// Ensure global functions are exposed if needed
+window.toggleDetails = toggleDetails;
+window.setTrend = setTrend;
+
 // Initialize on load
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialization logic if needed
     console.log("Market Dashboard Initialized.");
+
+    // Bind click events explicitly for trend buttons to pass isManual=true
+    document.querySelectorAll('.trend-btn').forEach(btn => {
+        // Remove standard onclick attributes in HTML to avoid double firing
+        btn.removeAttribute('onclick');
+
+        btn.addEventListener('click', function() {
+            // Find parent card to get indicator ID
+            const card = this.closest('.indicator-card');
+            const indicatorId = card.id.replace('card-', '');
+
+            // Determine trend from class
+            let trend = 'neutral';
+            if (this.classList.contains('up')) trend = 'up';
+            else if (this.classList.contains('down')) trend = 'down';
+
+            setTrend(indicatorId, trend, true);
+        });
+    });
+
+    // Initial fetch
+    fetchLatestQuotes();
+
+    // Set up interval for every 5 minutes (300,000 ms)
+    setInterval(fetchLatestQuotes, 300000);
 });
