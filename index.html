@@ -15,7 +15,7 @@
         <h1>MARKET<span class="highlight">DASH</span></h1>
         <p class="subtitle">Global Macro Indicators</p>
 
-        <div class="sentiment-panel glass-panel">
+        <div class="sentiment-panel glass-panel clickable" onclick="openModal('logic-modal')">
             <div class="sentiment-status" id="overall-sentiment">
                 <div class="status-icon"><i class="fas fa-satellite-dish"></i></div>
                 <div class="status-text">
@@ -325,6 +325,45 @@
             <p style="margin-top: 10px; color: var(--accent-neon); font-weight: bold;">風險控管永遠是首要任務，長期存活於市場，往往比捕捉單次短線行情更為重要。</p>
         </div>
     </main>
+</div>
+
+<!-- Modal for Logic Explanation -->
+<div id="logic-modal" class="modal">
+    <div class="modal-content glass-panel">
+        <span class="close-btn" onclick="closeModal('logic-modal')">&times;</span>
+        <h2><i class="fas fa-project-diagram"></i> 六大指標連動解析</h2>
+        <div class="modal-body">
+            <div class="logic-item">
+                <h3>🟢 資金擴張 (多頭環境)</h3>
+                <p><strong>指標特徵：</strong> VIX ⬇️ ＋ DXY ⬇️ ＋ US10Y ⬇️</p>
+                <p>資金成本降低，市場情緒穩定，投資人願意承擔風險，股市 (SPX) 最容易在此環境下走出大波段行情。</p>
+            </div>
+
+            <div class="logic-item">
+                <h3>⚠️ 流動性收縮 (壓力增加)</h3>
+                <p><strong>指標特徵：</strong> DXY ⬆️ 或 US10Y ⬆️ 快速飆升</p>
+                <p>強勢美元或高殖利率會大幅提高企業融資成本，壓抑新興市場與風險資產。若同時伴隨 VIX ⬆️，股市容易出現急跌。</p>
+            </div>
+
+            <div class="logic-item">
+                <h3>🛡️ 極端避險 (風險爆發)</h3>
+                <p><strong>指標特徵：</strong> SPX ⬇️ ＋ GOLD ⬆️ ＋ VIX ⬆️</p>
+                <p>典型的危機模式（如地緣衝突、金融系統性風險）。資金為了保命，不計成本拋售股票，瘋狂湧入黃金等避險資產。</p>
+            </div>
+
+            <div class="logic-item">
+                <h3>🔥 通膨再起 (貨幣疑慮)</h3>
+                <p><strong>指標特徵：</strong> SPX ⬆️ ＋ GOLD ⬆️ ＋ OIL ⬆️</p>
+                <p>股市與黃金同步上漲是特殊訊號。這通常代表市場認為鈔票變薄了（通膨），所以將現金轉換為實體資產或股票來保值。</p>
+            </div>
+
+            <div class="logic-item">
+                <h3>🚨 停滯性通膨 (最糟劇本)</h3>
+                <p><strong>指標特徵：</strong> SPX ⬇️ ＋ OIL ⬆️ ＋ US10Y ⬆️</p>
+                <p>油價（成本）飆升帶動通膨與利率走高，但經濟卻開始衰退導致企業獲利下降。這時股債雙殺，幾乎所有資產都面臨壓力。</p>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script src="script.js"></script>

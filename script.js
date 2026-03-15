@@ -318,9 +318,33 @@ async function fetchLatestQuotes() {
     }
 }
 
+/**
+ * Opens a modal by its ID.
+ * @param {string} modalId - The ID of the modal to open.
+ */
+function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add('show');
+    }
+}
+
+/**
+ * Closes a modal by its ID.
+ * @param {string} modalId - The ID of the modal to close.
+ */
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('show');
+    }
+}
+
 // Ensure global functions are exposed if needed
 window.toggleDetails = toggleDetails;
 window.setTrend = setTrend;
+window.openModal = openModal;
+window.closeModal = closeModal;
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', () => {
@@ -350,4 +374,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Set up interval for every 5 minutes (300,000 ms)
     setInterval(fetchLatestQuotes, 300000);
+
+    // Close modal if user clicks outside of the modal content
+    window.addEventListener('click', function(event) {
+        const modals = document.querySelectorAll('.modal.show');
+        modals.forEach(modal => {
+            if (event.target === modal) {
+                closeModal(modal.id);
+            }
+        });
+    });
 });
