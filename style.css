@@ -53,9 +53,9 @@ h1, h2 {
     background: rgba(0, 255, 136, 0.05);
     border: 1px solid rgba(0, 255, 136, 0.2);
     border-radius: 8px;
-    padding: 6px 12px;
-    margin-bottom: -10px;
-    display: inline-block;
+    padding: 8px 12px;
+    margin-bottom: 16px;
+    display: block;
     width: 100%;
 }
 
