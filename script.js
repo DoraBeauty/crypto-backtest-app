@@ -226,6 +226,7 @@ function processQuoteData(indicatorId, result) {
     // Update timestamp and price in UI
     const timeSpan = document.getElementById(`time-${indicatorId}`);
     if (timeSpan) {
+        timeSpan.classList.remove('skeleton');
         const timeStr = formatTime(timestamp);
         const changeStr = percentChange > 0 ? `+${percentChange.toFixed(2)}%` : `${percentChange.toFixed(2)}%`;
         const colorClass = percentChange > 0 ? 'text-up' : (percentChange < 0 ? 'text-down' : 'text-neutral');
@@ -285,6 +286,7 @@ async function fetchQuoteWithRetry(indicatorId, symbol, retries = 3) {
             // Out of retries, show error on UI
             const timeSpan = document.getElementById(`time-${indicatorId}`);
             if (timeSpan) {
+                timeSpan.classList.remove('skeleton');
                 timeSpan.innerHTML = `<span class="text-neutral">無法載入數據，請稍後再試</span>`;
             }
             return false; // Failed
@@ -296,11 +298,12 @@ async function fetchQuoteWithRetry(indicatorId, symbol, retries = 3) {
  * Fetches latest quotes for all indicators sequentially to avoid proxy rate limits.
  */
 async function fetchLatestQuotes() {
-    // Show loading indicators before fetching
+    // Show skeleton loading indicators before fetching
     Object.keys(symbolsMap).forEach(indicatorId => {
         const timeSpan = document.getElementById(`time-${indicatorId}`);
         if (timeSpan) {
-            timeSpan.innerHTML = `<i class="fas fa-spinner fa-spin"></i> 載入數據中...`;
+            timeSpan.classList.add('skeleton');
+            timeSpan.innerHTML = `載入數據中...`; // Text won't be seen due to skeleton, but holds some width
         }
     });
 
