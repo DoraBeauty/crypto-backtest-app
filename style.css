@@ -87,6 +87,14 @@ h1, h2 {
     transition: all 0.3s ease;
 }
 
+.sentiment-panel.clickable {
+    cursor: pointer;
+}
+.sentiment-panel.clickable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.6);
+}
+
 .sentiment-status {
     display: flex;
     align-items: center;
@@ -379,4 +387,104 @@ h1, h2 {
 
 .rotate-180 {
     transform: rotate(180deg);
+}
+
+/* Modal Styles */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1000; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(10, 14, 23, 0.85); /* Dark background with opacity */
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.modal.show {
+    display: block;
+    opacity: 1;
+}
+
+.modal-content {
+    background-color: var(--bg-panel);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    margin: 10% auto; /* 10% from the top and centered */
+    padding: 30px;
+    border: 1px solid rgba(0, 243, 255, 0.2);
+    width: 90%; /* Could be more or less, depending on screen size */
+    max-width: 600px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    position: relative;
+    transform: translateY(-20px);
+    transition: transform 0.3s ease;
+}
+
+.modal.show .modal-content {
+    transform: translateY(0);
+}
+
+.modal-content h2 {
+    color: var(--accent-neon);
+    margin-top: 0;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 20px;
+}
+
+.close-btn {
+    color: var(--text-muted);
+    position: absolute;
+    top: 20px;
+    right: 25px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.close-btn:hover,
+.close-btn:focus {
+    color: var(--accent-warning);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.logic-item {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.logic-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.logic-item h3 {
+    color: var(--text-primary);
+    font-size: 16px;
+    margin-top: 0;
+    margin-bottom: 8px;
+}
+
+.logic-item p {
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 5px 0;
+}
+
+.logic-item strong {
+    color: var(--accent-neon);
 }
