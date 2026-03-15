@@ -45,6 +45,20 @@ h1, h2 {
     letter-spacing: 1px;
 }
 
+/* Cache Notice */
+.cache-notice {
+    text-align: center;
+    font-size: 11px;
+    color: var(--accent-safe);
+    background: rgba(0, 255, 136, 0.05);
+    border: 1px solid rgba(0, 255, 136, 0.2);
+    border-radius: 8px;
+    padding: 6px 12px;
+    margin-bottom: -10px;
+    display: inline-block;
+    width: 100%;
+}
+
 /* Glassmorphism Panel Base */
 .glass-panel {
     background: var(--bg-panel);
@@ -169,7 +183,27 @@ h1, h2 {
 .indicator-card {
     padding: 16px;
     overflow: hidden;
-    transition: border-color 0.3s;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+/* Flash Animation for Updated Data */
+@keyframes border-flash {
+    0% {
+        box-shadow: 0 0 0 rgba(0, 243, 255, 0);
+        border-color: var(--border-glass);
+    }
+    10% {
+        box-shadow: 0 0 20px rgba(0, 243, 255, 0.8), inset 0 0 10px rgba(0, 243, 255, 0.3);
+        border-color: rgba(0, 243, 255, 1);
+    }
+    100% {
+        box-shadow: 0 0 0 rgba(0, 243, 255, 0);
+        border-color: var(--border-glass);
+    }
+}
+
+.update-flash {
+    animation: border-flash 3s ease-out;
 }
 
 .card-header {
