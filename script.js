@@ -1,5 +1,6 @@
 // State object to hold the current sentiment of each indicator
 const sentimentState = {
+    spx: 'neutral',
     vix: 'neutral',
     dxy: 'neutral',
     oil: 'neutral',
@@ -9,6 +10,7 @@ const sentimentState = {
 
 // Track whether the user has manually overridden the trend for a specific indicator
 const manualOverrideState = {
+    spx: false,
     vix: false,
     dxy: false,
     oil: false,
@@ -18,6 +20,7 @@ const manualOverrideState = {
 
 // Mapping of indicators to Yahoo Finance symbols
 const symbolsMap = {
+    spx: '^GSPC',  // S&P 500
     vix: '^VIX',
     dxy: 'DX-Y.NYB',
     oil: 'CL=F',   // Crude Oil Futures
@@ -79,48 +82,62 @@ function setTrend(indicatorId, trend, isManual = true) {
 }
 
 /**
- * Analyzes the combined states of the 5 indicators to provide a market sentiment reading.
- * Based on the user's logic:
- * VIX up + Gold up + Yield up = Stress/Risk Off
- * DXY down + Yield down + VIX down = Risk On / Liquidity Expansion
+ * Analyzes the combined states of the indicators to provide a market sentiment reading.
+ * Based on user's exact logic:
+ * Risk Off: SPX down + Gold up / VIX up / DXY up / Yield up
+ * Risk On: VIX down + DXY down + Yield down
+ * Inflation fears: SPX up + Gold up
  */
 function calculateOverallSentiment() {
     let riskOffScore = 0;
     let riskOnScore = 0;
     let neutralCount = 0;
+    let isInflationFear = false;
+    let isDirectSafeHaven = false;
 
-    const states = Object.values(sentimentState);
+    const s = sentimentState;
+
+    // Check specific specific combinations requested by user
+    if (s.spx === 'down' && s.gold === 'up') {
+        isDirectSafeHaven = true;
+    }
+    if (s.spx === 'up' && s.gold === 'up') {
+        isInflationFear = true;
+    }
+
+    // SPX is the primary directional indicator
+    if (s.spx === 'down') riskOffScore += 1;
+    if (s.spx === 'up') riskOnScore += 1;
 
     // Evaluate Risk-Off (Stress) signals
-    // Usually, VIX Up, DXY Up, Gold Up, Yield Up (too fast), Oil Up (supply shock) are risk-off or inflation fears.
-    // We treat "Up" generally as a stress factor in this simplified model based on user text.
-    if (sentimentState.vix === 'up') riskOffScore += 2; // VIX is a primary fear gauge
-    if (sentimentState.vix === 'down') riskOnScore += 2;
+    if (s.vix === 'up') riskOffScore += 2; // VIX is a primary fear gauge
+    if (s.vix === 'down') riskOnScore += 2;
 
-    if (sentimentState.dxy === 'up') riskOffScore += 1;
-    if (sentimentState.dxy === 'down') riskOnScore += 1;
+    if (s.dxy === 'up') riskOffScore += 1.5;
+    if (s.dxy === 'down') riskOnScore += 1.5;
 
-    if (sentimentState.gold === 'up') riskOffScore += 1.5; // Gold up usually means uncertainty
-    if (sentimentState.gold === 'down') riskOnScore += 1; // Risk preference
+    if (s.gold === 'up') riskOffScore += 1; // General uncertainty
+    if (s.gold === 'down') riskOnScore += 1;
 
-    if (sentimentState.yield === 'up') riskOffScore += 1; // Yield up: higher cost
-    if (sentimentState.yield === 'down') riskOnScore += 1.5; // Yield down: lower cost
+    if (s.yield === 'up') riskOffScore += 1.5; // Yield up: higher cost
+    if (s.yield === 'down') riskOnScore += 1.5; // Yield down: lower cost
 
-    if (sentimentState.oil === 'up') riskOffScore += 1; // Oil up: inflation/cost pressure
-    if (sentimentState.oil === 'down') riskOnScore += 1; // Oil down: demand worry OR lower inflation
+    // Oil weight reduced as it's an ambiguous signal (can be demand or supply shock)
+    if (s.oil === 'up') riskOffScore += 0.5;
+    if (s.oil === 'down') riskOnScore += 0.5;
 
-    states.forEach(state => {
+    Object.values(s).forEach(state => {
         if (state === 'neutral') neutralCount++;
     });
 
     // Update UI based on scores
-    updateDashboardUI(riskOffScore, riskOnScore, neutralCount);
+    updateDashboardUI(riskOffScore, riskOnScore, neutralCount, isInflationFear, isDirectSafeHaven);
 }
 
 /**
  * Updates the top dashboard UI with the calculated sentiment.
  */
-function updateDashboardUI(riskOff, riskOn, neutralCount) {
+function updateDashboardUI(riskOff, riskOn, neutralCount, isInflationFear, isDirectSafeHaven) {
     const sentimentPanel = document.querySelector('.sentiment-panel');
     const valueEl = document.getElementById('sentiment-value');
     const descEl = document.getElementById('sentiment-desc');
@@ -129,30 +146,38 @@ function updateDashboardUI(riskOff, riskOn, neutralCount) {
     // Reset classes
     sentimentPanel.classList.remove('warning', 'safe', 'mixed');
 
-    if (neutralCount >= 4) {
-        // Mostly neutral
-        sentimentPanel.classList.add('mixed');
-        valueEl.textContent = '方向不明確 (盤整待變)';
-        descEl.innerHTML = '多數指標處於震盪。如你所述：「在沒有出現關鍵長黑前，與其急著做方向，不如耐心等市場自己說話。」';
-        iconEl.className = 'fas fa-balance-scale';
-    } else if (riskOff > riskOn + 1) {
+    // 1. Direct clear combinations first
+    if (isDirectSafeHaven) {
+        sentimentPanel.classList.add('warning');
+        valueEl.textContent = '避險情緒強烈 (資金逃離)';
+        descEl.innerHTML = '⚠️ <strong>警示訊號：</strong> 股市下跌 + 黃金上漲，幾乎可以確定資金正在往避險資產移動 (金融風險、地緣衝突、貨幣疑慮)。留意股市下行風險。';
+        iconEl.className = 'fas fa-shield-alt';
+    } else if (isInflationFear) {
+        sentimentPanel.classList.add('warning'); // It's a type of warning even if stocks are up
+        valueEl.textContent = '通膨/貨幣疑慮 (資金佈局)';
+        descEl.innerHTML = '🔥 <strong>特殊訊號：</strong> 股市上漲 + 黃金上漲，代表市場可能正在提前佈局通膨，或者對貨幣價值產生疑慮。';
+        iconEl.className = 'fas fa-fire-alt';
+    }
+    // 2. Score-based overall direction
+    else if (riskOff >= riskOn + 2.5) {
         // Strong Risk-Off / Stress
         sentimentPanel.classList.add('warning');
-        valueEl.textContent = '避險情緒升溫 (資金收縮)';
-        descEl.innerHTML = '⚠️ <strong>警示訊號：</strong> 市場壓力正在增加。若 VIX 與黃金同步上漲，資金正流向避險資產，留意股市下行風險。';
+        valueEl.textContent = '流動性收縮 (避險升溫)';
+        descEl.innerHTML = '⚠️ <strong>收縮訊號：</strong> 市場壓力正在增加。美元走強或殖利率飆升可能正在提高資金成本，請留意股市壓力。';
         iconEl.className = 'fas fa-exclamation-triangle';
-    } else if (riskOn > riskOff + 1) {
+    } else if (riskOn >= riskOff + 2.5) {
         // Strong Risk-On / Expansion
         sentimentPanel.classList.add('safe');
         valueEl.textContent = '風險偏好上升 (多頭環境)';
-        descEl.innerHTML = '🟢 <strong>擴張訊號：</strong> 資金成本與壓力下降。VIX 低檔且美元偏弱，資金更願意承擔風險，有利於股市與商品發展。';
+        descEl.innerHTML = '🟢 <strong>擴張訊號：</strong> 資金成本與壓力下降。VIX 低檔且美元/殖利率偏弱，資金更願意承擔風險，有利於股市發展。';
         iconEl.className = 'fas fa-chart-line';
-    } else {
-        // Mixed signals
+    }
+    // 3. Mixed / Neutral
+    else {
         sentimentPanel.classList.add('mixed');
-        valueEl.textContent = '訊號分歧 (多空交戰)';
-        descEl.innerHTML = '目前各項指標方向並未完全同步。請注意：<strong>「只要這些指標開始朝同一個方向移動，行情往往就會走得很乾脆。」</strong> 持續觀察。';
-        iconEl.className = 'fas fa-random';
+        valueEl.textContent = '訊號尚未同步 (盤整待變)';
+        descEl.innerHTML = '目前各項指標方向分歧。<strong>「在沒有出現關鍵長黑之前，與其急著做方向，不如耐心等市場自己說話。」</strong>';
+        iconEl.className = 'fas fa-balance-scale';
     }
 }
 

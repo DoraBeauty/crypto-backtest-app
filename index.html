@@ -28,6 +28,54 @@
     </header>
 
     <main class="indicators-container">
+        <!-- SPX Card -->
+        <section class="indicator-card glass-panel" id="card-spx">
+            <div class="card-header">
+                <div class="title-group">
+                    <h2>SPX <span class="badge">趨勢</span></h2>
+                    <span class="desc-short">股市溫度計</span>
+                    <span class="update-time" id="time-spx">載入數據中...</span>
+                </div>
+                <button class="toggle-btn" onclick="toggleDetails('spx')">
+                    <span class="icon-down">▼</span>
+                </button>
+            </div>
+            <div class="chart-container" id="chart-spx">
+                <!-- TradingView Widget BEGIN -->
+                <div class="tradingview-widget-container">
+                  <div class="tradingview-widget-container__widget"></div>
+                  <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+                  {
+                  "symbol": "CME_MINI:ES1!",
+                  "width": "100%",
+                  "height": "100%",
+                  "locale": "zh_TW",
+                  "dateRange": "1M",
+                  "colorTheme": "dark",
+                  "isTransparent": true,
+                  "autosize": true,
+                  "largeChartUrl": ""
+                }
+                  </script>
+                </div>
+                <!-- TradingView Widget END -->
+            </div>
+
+            <div class="trend-selector">
+                <button class="trend-btn up" onclick="setTrend('spx', 'up')">上漲 (多頭)</button>
+                <button class="trend-btn neutral active" onclick="setTrend('spx', 'neutral')">震盪</button>
+                <button class="trend-btn down" onclick="setTrend('spx', 'down')">下跌 (空頭)</button>
+            </div>
+
+            <div class="details-content" id="details-spx">
+                <ul>
+                    <li><strong>美國標普 500 指數：</strong> 全球股市最具代表性的風向球。</li>
+                    <li><strong>股市跌 + 黃金漲：</strong> 資金正在往避險資產移動 (金融風險、地緣衝突)。</li>
+                    <li><strong>股市漲 + 黃金漲：</strong> 代表市場正在提前佈局通膨，或對貨幣價值產生疑慮。</li>
+                </ul>
+            </div>
+        </section>
+
         <!-- VIX Card -->
         <section class="indicator-card glass-panel" id="card-vix">
             <div class="card-header">
@@ -46,7 +94,7 @@
                   <div class="tradingview-widget-container__widget"></div>
                   <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
                   {
-                  "symbol": "VIX",
+                  "symbol": "CBOE:VIX",
                   "width": "100%",
                   "height": "100%",
                   "locale": "zh_TW",
@@ -69,9 +117,10 @@
 
             <div class="details-content" id="details-vix">
                 <ul>
-                    <li><strong>快速上升：</strong> 代表市場開始恐慌，投資人急著買避險。股市往往會同步出現劇烈波動。</li>
-                    <li><strong>長期維持低檔：</strong> 代表市場情緒穩定，資金願意承擔風險。多頭市場通常都會出現在這種環境。</li>
-                    <li><strong>極端情緒：</strong> 市場最恐慌的時候，往往也最接近情緒的轉折點。</li>
+                    <li><strong>本質：</strong> 從 S&P 500 選擇權推算出的波動率，也就是市場為<strong>「保險」</strong>付多少錢。</li>
+                    <li><strong>快速上升：</strong> 通常代表市場<strong>開始恐慌</strong>，投資人急著買避險。這時候股市往往會同步出現劇烈波動。</li>
+                    <li><strong>長期維持低檔：</strong> 代表市場<strong>情緒穩定</strong>，資金願意承擔風險。多頭市場通常都會出現在這種環境。</li>
+                    <li><strong>極端情緒轉折：</strong> 專業資金看 VIX 不是猜高低點，而是觀察極端情緒。<strong>市場最恐慌的時候，往往也最接近情緒的轉折點。</strong></li>
                 </ul>
             </div>
         </section>
@@ -94,7 +143,7 @@
                   <div class="tradingview-widget-container__widget"></div>
                   <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
                   {
-                  "symbol": "DXY",
+                  "symbol": "TVC:DXY",
                   "width": "100%",
                   "height": "100%",
                   "locale": "zh_TW",
@@ -117,8 +166,9 @@
 
             <div class="details-content" id="details-dxy">
                 <ul>
-                    <li><strong>美元走強：</strong> 全球流動性收縮，新興市場壓力變大，原物料價格容易被壓制（大宗商品多以美元計價）。</li>
-                    <li><strong>美元走弱：</strong> 資金願意離開美元尋找機會。股市、新興市場、商品通常較易出現行情。</li>
+                    <li><strong>本質：</strong> 美元是全球金融市場最核心的貨幣，其強弱反映的是<strong>全球資金的流向</strong>。</li>
+                    <li><strong>美元走強：</strong> 很多資金會回流美國。這會導致<strong>全球流動性收縮、新興市場壓力變大、原物料價格容易被壓制</strong>（因商品多以美元計價）。</li>
+                    <li><strong>美元轉弱：</strong> 資金較願意離開美元去尋找全球其他市場的機會。這時候<strong>股市、新興市場甚至商品，通常都比較容易出現行情</strong>。</li>
                 </ul>
             </div>
         </section>
@@ -164,9 +214,10 @@
 
             <div class="details-content" id="details-oil">
                 <ul>
-                    <li><strong>需求拉動上漲：</strong> 工業活動多、運輸需求升，代表經濟擴張，股市易同步走強。</li>
-                    <li><strong>供給衝擊飆升：</strong> 地緣政治或減產導致。市場擔憂企業成本增、通膨升、央行收緊，變成股市壓力。</li>
-                    <li><strong>突然崩跌：</strong> 市場懷疑全球需求消失，往往伴隨經濟衰退擔憂。</li>
+                    <li><strong>本質：</strong> 市場裡最難解讀的變數，同樣是上漲，原因可能完全不同。</li>
+                    <li><strong>需求拉動上漲：</strong> 工業活動變多、運輸需求上升。這通常代表<strong>經濟正在擴張，股市反而容易同步走強</strong>。</li>
+                    <li><strong>供給衝擊飆升：</strong> 地緣政治或產量下降導致。市場會擔心<strong>企業成本增加、通膨壓力升高、央行被迫收緊政策</strong>，這時油價反而會變成股市的壓力來源。</li>
+                    <li><strong>突然崩跌：</strong> 市場通常會開始懷疑<strong>全球需求是不是正在消失</strong>，這往往會伴隨對經濟衰退的擔憂。</li>
                 </ul>
             </div>
         </section>
@@ -212,8 +263,10 @@
 
             <div class="details-content" id="details-gold">
                 <ul>
-                    <li><strong>股市跌 + 黃金漲：</strong> 確定資金往避險資產移動 (金融風險、地緣衝突、貨幣疑慮)。</li>
-                    <li><strong>股市漲 + 黃金漲：</strong> 代表市場正在提前布局通膨，或對貨幣價值產生疑慮。</li>
+                    <li><strong>本質：</strong> 黃金在金融市場裡，通常代表的是<strong>不確定性</strong>。</li>
+                    <li><strong>資金避險：</strong> 當市場開始出現金融風險、地緣政治衝突、貨幣信用疑慮，資金往往會流向黃金。</li>
+                    <li><strong>股市跌 + 黃金漲：</strong> 那幾乎可以確定，<strong>資金正在往避險資產移動</strong>。</li>
+                    <li><strong>股市漲 + 黃金漲：</strong> 有時候代表市場<strong>正在提前佈局通膨</strong>，或者對貨幣價值產生疑慮。</li>
                 </ul>
             </div>
         </section>
@@ -259,14 +312,17 @@
 
             <div class="details-content" id="details-yield">
                 <ul>
-                    <li><strong>殖利率上升：</strong> 經濟變強或擔憂通膨。若上升太快，企業融資成本提高，資金回流債市，股市易現壓力。</li>
-                    <li><strong>殖利率下降：</strong> 預期經濟降溫或貨幣政策將轉向。資金成本下降，對股市往往是利多。</li>
+                    <li><strong>本質：</strong> 債券殖利率其實是市場<strong>最重要的利率訊號</strong>。它反映的是資金成本、通膨預期以及經濟成長預期。</li>
+                    <li><strong>殖利率上升：</strong> 可能代表經濟正在變強或市場開始擔心通膨。但如果<strong>上升太快，企業融資成本提高，資金也可能從股市回到債市</strong>，這時候股市就容易出現壓力。</li>
+                    <li><strong>殖利率下降：</strong> 通常代表市場預期經濟降溫或貨幣政策即將轉向。<strong>資金成本下降，對股市往往是利多</strong>。</li>
                 </ul>
             </div>
         </section>
 
         <div class="footer-note">
-            <p>只要方向開始同步，市場通常就會出現比較明確的趨勢。<br>能夠長時間活在市場裡，往往比抓到每一次行情更重要。</p>
+            <p>這六個東西，其實就像市場的儀表板。只要方向開始同步，市場通常就會出現比較明確的趨勢。</p>
+            <p style="margin-top: 10px;">目前訊號尚未同步。在沒有出現關鍵長黑（明確訊號）之前，與其急著做方向，不如耐心等市場自己說話。</p>
+            <p style="margin-top: 10px; color: var(--accent-neon); font-weight: bold;">市場永遠都在，能夠長時間活在市場裡，往往比抓到每一次行情更重要。</p>
         </div>
     </main>
 </div>

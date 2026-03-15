@@ -1,0 +1,23 @@
+
+    <html><body><script>
+    async function fetchQuoteWithRetry(symbol) {
+        const yfUrl = encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}`);
+        const apiUrl = `https://api.allorigins.win/get?url=${yfUrl}`;
+        try {
+            const res = await fetch(apiUrl);
+            console.log(`[${symbol}] Status: ${res.status}`);
+        } catch (e) {
+            console.log(`[${symbol}] Fetch error: ${e.message}`);
+        }
+    }
+
+    async function testAll() {
+        await fetchQuoteWithRetry('^GSPC');
+        await fetchQuoteWithRetry('^VIX');
+        await fetchQuoteWithRetry('DX-Y.NYB');
+        await fetchQuoteWithRetry('CL=F');
+        await fetchQuoteWithRetry('GC=F');
+        await fetchQuoteWithRetry('^TNX');
+    }
+    testAll();
+    </script></body></html>
