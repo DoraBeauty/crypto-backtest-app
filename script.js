@@ -220,13 +220,26 @@ async function fetchLatestQuotes() {
         // Fetch each symbol individually because v8 chart API prefers single symbols
         const promises = Object.entries(symbolsMap).map(async ([indicatorId, symbol]) => {
             const yfUrl = encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}`);
-            const apiUrl = `https://corsproxy.io/?url=${yfUrl}`;
+            // Use allorigins to bypass CORS. We use the /get endpoint which returns JSON with a 'contents' string
+            const apiUrl = `https://api.allorigins.win/get?url=${yfUrl}`;
 
             try {
                 const response = await fetch(apiUrl);
                 if (!response.ok) throw new Error(`Network response was not ok for ${symbol}`);
 
-                const parsedData = await response.json();
+                const responseData = await response.json();
+
+                // allorigins returns the actual JSON payload inside the "contents" string
+                if (!responseData.contents) {
+                    throw new Error(`No contents found for ${symbol}`);
+                }
+
+                let parsedData;
+                try {
+                    parsedData = JSON.parse(responseData.contents);
+                } catch (e) {
+                    throw new Error(`Failed to parse JSON for ${symbol}`);
+                }
 
                 if (parsedData && parsedData.chart && parsedData.chart.result && parsedData.chart.result.length > 0) {
                     const resultData = parsedData.chart.result[0].meta;
@@ -241,9 +254,14 @@ async function fetchLatestQuotes() {
                         }
                     };
                 }
-                return null;
+                throw new Error(`Invalid data format for ${symbol}`);
             } catch (err) {
                 console.error(`Error fetching data for ${symbol}:`, err);
+                // 顯示錯誤訊息在 UI 上
+                const timeSpan = document.getElementById(`time-${indicatorId}`);
+                if (timeSpan) {
+                    timeSpan.innerHTML = `<span class="text-neutral">無法載入數據，請稍後再試</span>`;
+                }
                 return null;
             }
         });
