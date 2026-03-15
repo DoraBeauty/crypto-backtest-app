@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Global Market Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<div class="app-container">
+    <header class="dashboard-header">
+        <h1>MARKET<span class="highlight">DASH</span></h1>
+        <p class="subtitle">Global Macro Indicators</p>
+
+        <div class="sentiment-panel glass-panel">
+            <div class="sentiment-status" id="overall-sentiment">
+                <div class="status-icon"><i class="fas fa-satellite-dish"></i></div>
+                <div class="status-text">
+                    <span class="label">綜合市場狀態</span>
+                    <strong id="sentiment-value">等待訊號確認...</strong>
+                </div>
+            </div>
+            <p class="sentiment-desc" id="sentiment-desc">請在下方各指標標記目前趨勢，系統將自動分析市場資金流向與情緒壓力。</p>
+        </div>
+    </header>
+
+    <main class="indicators-container">
+        <!-- VIX Card -->
+        <section class="indicator-card glass-panel" id="card-vix">
+            <div class="card-header">
+                <div class="title-group">
+                    <h2>VIX <span class="badge">情緒</span></h2>
+                    <span class="desc-short">市場壓力計</span>
+                </div>
+                <button class="toggle-btn" onclick="toggleDetails('vix')">
+                    <span class="icon-down">▼</span>
+                </button>
+            </div>
+            <div class="chart-container" id="chart-vix">
+                <!-- TradingView Widget BEGIN -->
+                <div class="tradingview-widget-container">
+                  <div class="tradingview-widget-container__widget"></div>
+                  <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+                  {
+                  "symbol": "VIX",
+                  "width": "100%",
+                  "height": "100%",
+                  "locale": "zh_TW",
+                  "dateRange": "1M",
+                  "colorTheme": "dark",
+                  "isTransparent": true,
+                  "autosize": true,
+                  "largeChartUrl": ""
+                }
+                  </script>
+                </div>
+                <!-- TradingView Widget END -->
+            </div>
+
+            <div class="trend-selector">
+                <button class="trend-btn up" onclick="setTrend('vix', 'up')">上升 (恐慌)</button>
+                <button class="trend-btn neutral active" onclick="setTrend('vix', 'neutral')">震盪</button>
+                <button class="trend-btn down" onclick="setTrend('vix', 'down')">下降 (穩定)</button>
+            </div>
+
+            <div class="details-content" id="details-vix">
+                <ul>
+                    <li><strong>快速上升：</strong> 代表市場開始恐慌，投資人急著買避險。股市往往會同步出現劇烈波動。</li>
+                    <li><strong>長期維持低檔：</strong> 代表市場情緒穩定，資金願意承擔風險。多頭市場通常都會出現在這種環境。</li>
+                    <li><strong>極端情緒：</strong> 市場最恐慌的時候，往往也最接近情緒的轉折點。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- DXY Card -->
+        <section class="indicator-card glass-panel" id="card-dxy">
+            <div class="card-header">
+                <div class="title-group">
+                    <h2>DXY <span class="badge">資金</span></h2>
+                    <span class="desc-short">全球資金水龍頭</span>
+                </div>
+                <button class="toggle-btn" onclick="toggleDetails('dxy')">
+                    <span class="icon-down">▼</span>
+                </button>
+            </div>
+            <div class="chart-container" id="chart-dxy">
+                <!-- TradingView Widget BEGIN -->
+                <div class="tradingview-widget-container">
+                  <div class="tradingview-widget-container__widget"></div>
+                  <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+                  {
+                  "symbol": "DXY",
+                  "width": "100%",
+                  "height": "100%",
+                  "locale": "zh_TW",
+                  "dateRange": "1M",
+                  "colorTheme": "dark",
+                  "isTransparent": true,
+                  "autosize": true,
+                  "largeChartUrl": ""
+                }
+                  </script>
+                </div>
+                <!-- TradingView Widget END -->
+            </div>
+
+            <div class="trend-selector">
+                <button class="trend-btn up" onclick="setTrend('dxy', 'up')">強勢 (收縮)</button>
+                <button class="trend-btn neutral active" onclick="setTrend('dxy', 'neutral')">震盪</button>
+                <button class="trend-btn down" onclick="setTrend('dxy', 'down')">弱勢 (寬鬆)</button>
+            </div>
+
+            <div class="details-content" id="details-dxy">
+                <ul>
+                    <li><strong>美元走強：</strong> 全球流動性收縮，新興市場壓力變大，原物料價格容易被壓制（大宗商品多以美元計價）。</li>
+                    <li><strong>美元走弱：</strong> 資金願意離開美元尋找機會。股市、新興市場、商品通常較易出現行情。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- OIL Card -->
+        <section class="indicator-card glass-panel" id="card-oil">
+            <div class="card-header">
+                <div class="title-group">
+                    <h2>OIL <span class="badge">成本</span></h2>
+                    <span class="desc-short">經濟與通膨交叉</span>
+                </div>
+                <button class="toggle-btn" onclick="toggleDetails('oil')">
+                    <span class="icon-down">▼</span>
+                </button>
+            </div>
+            <div class="chart-container" id="chart-oil">
+                <!-- TradingView Widget BEGIN -->
+                <div class="tradingview-widget-container">
+                  <div class="tradingview-widget-container__widget"></div>
+                  <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+                  {
+                  "symbol": "TVC:USOIL",
+                  "width": "100%",
+                  "height": "100%",
+                  "locale": "zh_TW",
+                  "dateRange": "1M",
+                  "colorTheme": "dark",
+                  "isTransparent": true,
+                  "autosize": true,
+                  "largeChartUrl": ""
+                }
+                  </script>
+                </div>
+                <!-- TradingView Widget END -->
+            </div>
+
+            <div class="trend-selector">
+                <button class="trend-btn up" onclick="setTrend('oil', 'up')">上漲 (通膨/需求)</button>
+                <button class="trend-btn neutral active" onclick="setTrend('oil', 'neutral')">震盪</button>
+                <button class="trend-btn down" onclick="setTrend('oil', 'down')">下跌 (衰退疑慮)</button>
+            </div>
+
+            <div class="details-content" id="details-oil">
+                <ul>
+                    <li><strong>需求拉動上漲：</strong> 工業活動多、運輸需求升，代表經濟擴張，股市易同步走強。</li>
+                    <li><strong>供給衝擊飆升：</strong> 地緣政治或減產導致。市場擔憂企業成本增、通膨升、央行收緊，變成股市壓力。</li>
+                    <li><strong>突然崩跌：</strong> 市場懷疑全球需求消失，往往伴隨經濟衰退擔憂。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- GOLD Card -->
+        <section class="indicator-card glass-panel" id="card-gold">
+            <div class="card-header">
+                <div class="title-group">
+                    <h2>GOLD <span class="badge">避險</span></h2>
+                    <span class="desc-short">不確定性指標</span>
+                </div>
+                <button class="toggle-btn" onclick="toggleDetails('gold')">
+                    <span class="icon-down">▼</span>
+                </button>
+            </div>
+            <div class="chart-container" id="chart-gold">
+                <!-- TradingView Widget BEGIN -->
+                <div class="tradingview-widget-container">
+                  <div class="tradingview-widget-container__widget"></div>
+                  <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+                  {
+                  "symbol": "OANDA:XAUUSD",
+                  "width": "100%",
+                  "height": "100%",
+                  "locale": "zh_TW",
+                  "dateRange": "1M",
+                  "colorTheme": "dark",
+                  "isTransparent": true,
+                  "autosize": true,
+                  "largeChartUrl": ""
+                }
+                  </script>
+                </div>
+                <!-- TradingView Widget END -->
+            </div>
+
+            <div class="trend-selector">
+                <button class="trend-btn up" onclick="setTrend('gold', 'up')">上漲 (避險/通膨)</button>
+                <button class="trend-btn neutral active" onclick="setTrend('gold', 'neutral')">震盪</button>
+                <button class="trend-btn down" onclick="setTrend('gold', 'down')">下跌 (風險偏好)</button>
+            </div>
+
+            <div class="details-content" id="details-gold">
+                <ul>
+                    <li><strong>股市跌 + 黃金漲：</strong> 確定資金往避險資產移動 (金融風險、地緣衝突、貨幣疑慮)。</li>
+                    <li><strong>股市漲 + 黃金漲：</strong> 代表市場正在提前布局通膨，或對貨幣價值產生疑慮。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- YIELD Card -->
+        <section class="indicator-card glass-panel" id="card-yield">
+            <div class="card-header">
+                <div class="title-group">
+                    <h2>US10Y <span class="badge">利率</span></h2>
+                    <span class="desc-short">資金成本訊號</span>
+                </div>
+                <button class="toggle-btn" onclick="toggleDetails('yield')">
+                    <span class="icon-down">▼</span>
+                </button>
+            </div>
+            <div class="chart-container" id="chart-yield">
+                <!-- TradingView Widget BEGIN -->
+                <div class="tradingview-widget-container">
+                  <div class="tradingview-widget-container__widget"></div>
+                  <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+                  {
+                  "symbol": "TVC:US10Y",
+                  "width": "100%",
+                  "height": "100%",
+                  "locale": "zh_TW",
+                  "dateRange": "1M",
+                  "colorTheme": "dark",
+                  "isTransparent": true,
+                  "autosize": true,
+                  "largeChartUrl": ""
+                }
+                  </script>
+                </div>
+                <!-- TradingView Widget END -->
+            </div>
+
+            <div class="trend-selector">
+                <button class="trend-btn up" onclick="setTrend('yield', 'up')">上升 (緊縮)</button>
+                <button class="trend-btn neutral active" onclick="setTrend('yield', 'neutral')">震盪</button>
+                <button class="trend-btn down" onclick="setTrend('yield', 'down')">下降 (寬鬆)</button>
+            </div>
+
+            <div class="details-content" id="details-yield">
+                <ul>
+                    <li><strong>殖利率上升：</strong> 經濟變強或擔憂通膨。若上升太快，企業融資成本提高，資金回流債市，股市易現壓力。</li>
+                    <li><strong>殖利率下降：</strong> 預期經濟降溫或貨幣政策將轉向。資金成本下降，對股市往往是利多。</li>
+                </ul>
+            </div>
+        </section>
+
+        <div class="footer-note">
+            <p>只要方向開始同步，市場通常就會出現比較明確的趨勢。<br>能夠長時間活在市場裡，往往比抓到每一次行情更重要。</p>
+        </div>
+    </main>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
