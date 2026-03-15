@@ -1,0 +1,334 @@
+/* Reset & Base Variables */
+:root {
+    --bg-main: #0a0e17;
+    --bg-panel: rgba(20, 26, 38, 0.6);
+    --border-glass: rgba(255, 255, 255, 0.08);
+    --text-primary: #e0e6ed;
+    --text-secondary: #8b9bb4;
+    --accent-neon: #00f0ff;
+    --accent-warning: #ff3366;
+    --accent-safe: #00ff88;
+    --accent-neutral: #6c7a9c;
+
+    --card-radius: 16px;
+    --glow-shadow: 0 0 15px rgba(0, 240, 255, 0.1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Noto Sans TC', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    line-height: 1.5;
+    background-image:
+        radial-gradient(circle at 15% 50%, rgba(0, 240, 255, 0.03), transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(255, 51, 102, 0.03), transparent 25%);
+    background-attachment: fixed;
+}
+
+.app-container {
+    max-width: 600px; /* Mobile optimized width */
+    margin: 0 auto;
+    padding: 16px;
+    padding-bottom: 40px;
+}
+
+/* Typography & Titles */
+h1, h2 {
+    font-family: 'Orbitron', sans-serif;
+    letter-spacing: 1px;
+}
+
+/* Glassmorphism Panel Base */
+.glass-panel {
+    background: var(--bg-panel);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--card-radius);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Header Section */
+.dashboard-header {
+    text-align: center;
+    margin-bottom: 24px;
+    padding-top: 10px;
+}
+
+.dashboard-header h1 {
+    font-size: 28px;
+    color: #fff;
+}
+
+.dashboard-header .highlight {
+    color: var(--accent-neon);
+    text-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+}
+
+.subtitle {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+}
+
+/* Sentiment Panel */
+.sentiment-panel {
+    padding: 16px;
+    text-align: left;
+    transition: all 0.3s ease;
+}
+
+.sentiment-status {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.status-icon {
+    font-size: 24px;
+    color: var(--accent-neutral);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    transition: all 0.3s;
+}
+
+.status-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.status-text .label {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.status-text strong {
+    font-size: 16px;
+    color: var(--text-primary);
+}
+
+.sentiment-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+/* Warning State Colors */
+.sentiment-panel.warning {
+    border-color: rgba(255, 51, 102, 0.3);
+    box-shadow: 0 0 20px rgba(255, 51, 102, 0.1);
+}
+.sentiment-panel.warning .status-icon { color: var(--accent-warning); background: rgba(255, 51, 102, 0.1); }
+.sentiment-panel.warning strong { color: var(--accent-warning); }
+
+.sentiment-panel.safe {
+    border-color: rgba(0, 255, 136, 0.3);
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
+}
+.sentiment-panel.safe .status-icon { color: var(--accent-safe); background: rgba(0, 255, 136, 0.1); }
+.sentiment-panel.safe strong { color: var(--accent-safe); }
+
+.sentiment-panel.mixed {
+    border-color: rgba(0, 240, 255, 0.3);
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.1);
+}
+.sentiment-panel.mixed .status-icon { color: var(--accent-neon); background: rgba(0, 240, 255, 0.1); }
+.sentiment-panel.mixed strong { color: var(--accent-neon); }
+
+/* Indicators Container */
+.indicators-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Indicator Card */
+.indicator-card {
+    padding: 16px;
+    overflow: hidden;
+    transition: border-color 0.3s;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.title-group h2 {
+    font-size: 20px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.badge {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 10px;
+    background: rgba(0, 240, 255, 0.15);
+    color: var(--accent-neon);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 240, 255, 0.3);
+}
+
+.desc-short {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.toggle-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px;
+    transition: transform 0.3s;
+}
+
+/* Chart Container */
+.chart-container {
+    height: 180px; /* Fixed height for mini charts */
+    margin-bottom: 16px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #131722; /* Match TradingView dark bg */
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Trend Selector Buttons */
+.trend-selector {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.trend-btn {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    padding: 10px 4px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+/* Active States */
+.trend-btn.up.active {
+    background: rgba(255, 51, 102, 0.15);
+    border-color: var(--accent-warning);
+    color: var(--accent-warning);
+    box-shadow: 0 0 10px rgba(255, 51, 102, 0.2);
+}
+
+.trend-btn.down.active {
+    background: rgba(0, 255, 136, 0.15);
+    border-color: var(--accent-safe);
+    color: var(--accent-safe);
+    box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+}
+
+.trend-btn.neutral.active {
+    background: rgba(108, 122, 156, 0.2);
+    border-color: var(--accent-neutral);
+    color: #fff;
+}
+
+/* Specific overrides for indicators where UP is good/bad */
+/* DXY: Up=Warning(Tightening), Down=Safe(Loosening) */
+/* Yield: Up=Warning(Tightening), Down=Safe(Loosening) */
+/* Oil: Up=Warning(Inflation/Cost), Down=Safe(Depends, but generally lower cost) - simplified for dashboard */
+/* Gold: Up=Warning(Risk Off), Down=Safe(Risk On) */
+
+/* To keep it simple visually:
+   For this specific dashboard logic:
+   VIX Up = Bad (Red), VIX Down = Good (Green)
+   DXY Up = Bad (Red), DXY Down = Good (Green)
+   Yield Up = Bad (Red), Yield Down = Good (Green)
+   Gold Up = Bad (Red), Gold Down = Good (Green)
+   Oil Up = Bad (Red), Oil Down = Good (Green)
+   Since the user focuses on risk-on vs risk-off.
+*/
+
+
+/* Expandable Details */
+.details-content {
+    display: none; /* Hidden by default */
+    padding-top: 12px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.1);
+    font-size: 13px;
+    color: var(--text-primary);
+}
+
+.details-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+.details-content ul {
+    list-style-type: none;
+}
+
+.details-content li {
+    margin-bottom: 10px;
+    padding-left: 12px;
+    position: relative;
+}
+
+.details-content li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 6px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--accent-neon);
+}
+
+.details-content strong {
+    color: var(--accent-neon);
+    font-weight: 500;
+}
+
+/* Footer */
+.footer-note {
+    margin-top: 30px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.8;
+    padding: 20px;
+    border-top: 1px solid var(--border-glass);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.rotate-180 {
+    transform: rotate(180deg);
+}
