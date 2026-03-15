@@ -192,6 +192,27 @@ h1, h2 {
 .desc-short {
     font-size: 12px;
     color: var(--text-secondary);
+    display: block;
+}
+
+.update-time {
+    font-size: 10px;
+    color: var(--text-secondary);
+    display: block;
+    margin-top: 4px;
+    opacity: 0.8;
+}
+
+.text-up {
+    color: var(--accent-safe);
+}
+
+.text-down {
+    color: var(--accent-warning);
+}
+
+.text-neutral {
+    color: var(--accent-neutral);
 }
 
 .toggle-btn {
