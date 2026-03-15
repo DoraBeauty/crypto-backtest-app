@@ -15,6 +15,10 @@
         <h1>MARKET<span class="highlight">DASH</span></h1>
         <p class="subtitle">Global Macro Indicators</p>
 
+        <div class="cache-notice">
+            <p>💡 報價資料已啟用本地快取，有新數據時將自動高亮更新</p>
+        </div>
+
         <div class="sentiment-panel glass-panel clickable" onclick="openModal('logic-modal')">
             <div class="sentiment-status" id="overall-sentiment">
                 <div class="status-icon"><i class="fas fa-satellite-dish"></i></div>
@@ -69,7 +73,8 @@
 
             <div class="details-content" id="details-spx">
                 <ul>
-                    <li><strong>美國標普 500 指數：</strong> 全球股市最具代表性的風向球。</li>
+                    <li><strong>一言以蔽之：</strong> 市場資金的終極歸宿，最具代表性的整體市場風向球。</li>
+                    <li><strong>美國標普 500 指數：</strong> 全球股市的指標。當資金環境良好時，股市通常是最大的受惠者。</li>
                     <li><strong>股市跌 + 黃金漲：</strong> 資金正在往避險資產移動 (金融風險、地緣衝突)。</li>
                     <li><strong>股市漲 + 黃金漲：</strong> 代表市場正在提前佈局通膨，或對貨幣價值產生疑慮。</li>
                 </ul>
@@ -117,10 +122,11 @@
 
             <div class="details-content" id="details-vix">
                 <ul>
-                    <li><strong>本質：</strong> 從 S&P 500 選擇權推算出的波動率，也就是市場為<strong>「保險」</strong>付多少錢。</li>
-                    <li><strong>快速上升：</strong> 通常代表市場<strong>開始恐慌</strong>，投資人急著買避險。這時候股市往往會同步出現劇烈波動。</li>
-                    <li><strong>長期維持低檔：</strong> 代表市場<strong>情緒穩定</strong>，資金願意承擔風險。多頭市場通常都會出現在這種環境。</li>
-                    <li><strong>極端情緒轉折：</strong> 專業資金看 VIX 不是猜高低點，而是觀察極端情緒。<strong>市場最恐慌的時候，往往也最接近情緒的轉折點。</strong></li>
+                    <li><strong>一言以蔽之：</strong> 市場為「保險」付出的成本，數值越高代表市場越恐慌。</li>
+                    <li><strong>本質：</strong> 從 S&P 500 選擇權推算出的未來波動率預期。</li>
+                    <li><strong>快速上升：</strong> 通常代表市場<strong>開始恐慌</strong>，投資人急著買避險。這時候股市往往會同步出現劇烈跌幅。</li>
+                    <li><strong>長期維持低檔：</strong> 代表市場<strong>情緒穩定</strong>，資金願意承擔風險，是孕育大牛市的溫床。</li>
+                    <li><strong>極端情緒轉折：</strong> 專業資金看 VIX 不是猜高低點，而是觀察極端情緒。<strong>市場最恐慌的時候，往往也最接近行情反轉點。</strong></li>
                 </ul>
             </div>
         </section>
@@ -166,9 +172,10 @@
 
             <div class="details-content" id="details-dxy">
                 <ul>
-                    <li><strong>本質：</strong> 美元是全球金融市場最核心的貨幣，其強弱反映的是<strong>全球資金的流向</strong>。</li>
-                    <li><strong>美元走強：</strong> 很多資金會回流美國。這會導致<strong>全球流動性收縮、新興市場壓力變大、原物料價格容易被壓制</strong>（因商品多以美元計價）。</li>
-                    <li><strong>美元轉弱：</strong> 資金較願意離開美元去尋找全球其他市場的機會。這時候<strong>股市、新興市場甚至商品，通常都比較容易出現行情</strong>。</li>
+                    <li><strong>一言以蔽之：</strong> 全球資金的抽水馬達，美元越強，全球市場資金越緊縮。</li>
+                    <li><strong>本質：</strong> 美元相對於一籃子主要貨幣的匯率，反映<strong>全球資金流向</strong>。</li>
+                    <li><strong>美元走強：</strong> 資金回流美國，導致<strong>全球流動性收縮、新興市場壓力變大、原物料價格承壓</strong>（因多以美元計價）。</li>
+                    <li><strong>美元轉弱：</strong> 資金離開美國尋找更高風險報酬。這時候<strong>股市、新興市場與原物料，通常容易出現波段行情</strong>。</li>
                 </ul>
             </div>
         </section>
@@ -214,10 +221,11 @@
 
             <div class="details-content" id="details-oil">
                 <ul>
-                    <li><strong>本質：</strong> 市場裡最難解讀的變數，同樣是上漲，原因可能完全不同。</li>
-                    <li><strong>需求拉動上漲：</strong> 工業活動變多、運輸需求上升。這通常代表<strong>經濟正在擴張，股市反而容易同步走強</strong>。</li>
-                    <li><strong>供給衝擊飆升：</strong> 地緣政治或產量下降導致。市場會擔心<strong>企業成本增加、通膨壓力升高、央行被迫收緊政策</strong>，這時油價反而會變成股市的壓力來源。</li>
-                    <li><strong>突然崩跌：</strong> 市場通常會開始懷疑<strong>全球需求是不是正在消失</strong>，這往往會伴隨對經濟衰退的擔憂。</li>
+                    <li><strong>一言以蔽之：</strong> 實體經濟的血液，上漲可能是因為經濟好，也可能是因為供給斷鏈。</li>
+                    <li><strong>本質：</strong> 反映全球實體經濟需求與地緣政治供給的交叉點。</li>
+                    <li><strong>需求拉動上漲：</strong> 工業活動與運輸增加，代表<strong>經濟擴張，股市容易同步走強</strong>。</li>
+                    <li><strong>供給衝擊飆升：</strong> 因戰爭或減產導致。這會使<strong>企業成本暴增、通膨壓力飆升</strong>，迫使央行升息，油價變成殺手。</li>
+                    <li><strong>突然崩跌：</strong> 市場懷疑<strong>全球需求正在消失</strong>，往往伴隨對經濟嚴重衰退的恐慌。</li>
                 </ul>
             </div>
         </section>
@@ -263,10 +271,11 @@
 
             <div class="details-content" id="details-gold">
                 <ul>
-                    <li><strong>本質：</strong> 黃金在金融市場裡，通常代表的是<strong>不確定性</strong>。</li>
-                    <li><strong>資金避險：</strong> 當市場開始出現金融風險、地緣政治衝突、貨幣信用疑慮，資金往往會流向黃金。</li>
-                    <li><strong>股市跌 + 黃金漲：</strong> 那幾乎可以確定，<strong>資金正在往避險資產移動</strong>。</li>
-                    <li><strong>股市漲 + 黃金漲：</strong> 有時候代表市場<strong>正在提前佈局通膨</strong>，或者對貨幣價值產生疑慮。</li>
+                    <li><strong>一言以蔽之：</strong> 終極的無息避風港，也是對抗貨幣貶值與世界動盪的保險。</li>
+                    <li><strong>本質：</strong> 代表對現有金融體系或法定貨幣的<strong>不確定性</strong>與不信任。</li>
+                    <li><strong>資金避險：</strong> 當爆發地緣政治衝突或金融系統風險時，避險資金會大舉湧入。</li>
+                    <li><strong>股市跌 + 黃金漲：</strong> 強烈訊號，幾乎可確定<strong>資金正在大舉逃往避險資產</strong>。</li>
+                    <li><strong>股市漲 + 黃金漲：</strong> 特殊現象，代表市場資金極度氾濫，或<strong>正在提前佈置抵抗未來的惡性通膨</strong>。</li>
                 </ul>
             </div>
         </section>
@@ -312,9 +321,10 @@
 
             <div class="details-content" id="details-yield">
                 <ul>
-                    <li><strong>本質：</strong> 債券殖利率其實是市場<strong>最重要的利率訊號</strong>。它反映的是資金成本、通膨預期以及經濟成長預期。</li>
-                    <li><strong>殖利率上升：</strong> 可能代表經濟正在變強或市場開始擔心通膨。但如果<strong>上升太快，企業融資成本提高，資金也可能從股市回到債市</strong>，這時候股市就容易出現壓力。</li>
-                    <li><strong>殖利率下降：</strong> 通常代表市場預期經濟降溫或貨幣政策即將轉向。<strong>資金成本下降，對股市往往是利多</strong>。</li>
+                    <li><strong>一言以蔽之：</strong> 無風險資金的機會成本，也是決定企業借貸利息的基準。</li>
+                    <li><strong>本質：</strong> 市場真實交易出的<strong>利率訊號</strong>，包含對通膨與經濟成長的預期。</li>
+                    <li><strong>殖利率上升：</strong> 經濟向好或通膨預期升溫。但若<strong>飆升太快，會嚴重打擊科技股與高負債企業</strong>，並吸引資金離開股市轉買債券。</li>
+                    <li><strong>殖利率下降：</strong> 市場預期經濟降溫或央行準備降息。<strong>無風險利率變低，資金更願意投入股市尋求高報酬</strong>。</li>
                 </ul>
             </div>
         </section>

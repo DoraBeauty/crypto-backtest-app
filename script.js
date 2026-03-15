@@ -198,16 +198,52 @@ function formatTime(unixTime) {
 }
 
 /**
+ * Loads cached quote data from local storage.
+ * @returns {object|null} Cached data object or null if none exists.
+ */
+function loadCache() {
+    try {
+        const cached = localStorage.getItem('marketDashCache');
+        if (cached) {
+            return JSON.parse(cached);
+        }
+    } catch (e) {
+        console.warn('Failed to load cache', e);
+    }
+    return null;
+}
+
+/**
+ * Saves quote data to local storage.
+ * @param {string} indicatorId - The ID of the indicator.
+ * @param {object} data - The quote data to cache.
+ */
+function saveCache(indicatorId, data) {
+    try {
+        let cache = loadCache() || {};
+        cache[indicatorId] = data;
+        localStorage.setItem('marketDashCache', JSON.stringify(cache));
+    } catch (e) {
+        console.warn('Failed to save cache', e);
+    }
+}
+
+/**
  * Updates the UI with fetched data and determines the trend.
  * @param {string} indicatorId - The ID of the indicator
  * @param {object} result - The parsed quote result from Yahoo Finance
+ * @param {boolean} isInitialLoad - True if this is from local storage cache during page load.
  */
-function processQuoteData(indicatorId, result) {
+function processQuoteData(indicatorId, result, isInitialLoad = false) {
     if (!result || !result.regularMarketPrice || !result.regularMarketPreviousClose) return;
 
     const currentPrice = result.regularMarketPrice;
     const prevClose = result.regularMarketPreviousClose;
     const timestamp = result.regularMarketTime;
+
+    // 檢查快取是否有相同時間的資料，用於判斷是否需要觸發 UI 閃爍動畫
+    const cache = loadCache();
+    const isNewData = !isInitialLoad && (!cache || !cache[indicatorId] || cache[indicatorId].regularMarketTime !== timestamp);
 
     // Calculate percentage change
     const percentChange = ((currentPrice - prevClose) / prevClose) * 100;
@@ -232,6 +268,28 @@ function processQuoteData(indicatorId, result) {
         const colorClass = percentChange > 0 ? 'text-up' : (percentChange < 0 ? 'text-down' : 'text-neutral');
 
         timeSpan.innerHTML = `更新時間: ${timeStr} <span class="${colorClass}">(${changeStr})</span>`;
+
+        // 如果是新抓到的資料（且不是第一次從快取讀取的），讓卡片邊框閃爍提示使用者
+        if (isNewData) {
+            const card = document.getElementById(`card-${indicatorId}`);
+            if (card) {
+                // 移除現有的 class 避免動畫無法重新觸發
+                card.classList.remove('update-flash');
+                // 使用 setTimeout 確保 DOM 更新後加上 class
+                setTimeout(() => {
+                    card.classList.add('update-flash');
+                    // 3 秒後移除閃爍效果
+                    setTimeout(() => card.classList.remove('update-flash'), 3000);
+                }, 10);
+            }
+
+            // 儲存最新的資料到 LocalStorage
+            saveCache(indicatorId, {
+                regularMarketPrice: currentPrice,
+                regularMarketPreviousClose: prevClose,
+                regularMarketTime: timestamp
+            });
+        }
     }
 }
 
@@ -296,16 +354,19 @@ async function fetchQuoteWithRetry(indicatorId, symbol, retries = 3) {
 
 /**
  * Fetches latest quotes for all indicators sequentially to avoid proxy rate limits.
+ * @param {boolean} hideSkeleton - If true, do not show the skeleton loading (e.g., when cache is already shown).
  */
-async function fetchLatestQuotes() {
-    // Show skeleton loading indicators before fetching
-    Object.keys(symbolsMap).forEach(indicatorId => {
-        const timeSpan = document.getElementById(`time-${indicatorId}`);
-        if (timeSpan) {
-            timeSpan.classList.add('skeleton');
-            timeSpan.innerHTML = `載入數據中...`; // Text won't be seen due to skeleton, but holds some width
-        }
-    });
+async function fetchLatestQuotes(hideSkeleton = false) {
+    if (!hideSkeleton) {
+        // Show skeleton loading indicators before fetching
+        Object.keys(symbolsMap).forEach(indicatorId => {
+            const timeSpan = document.getElementById(`time-${indicatorId}`);
+            if (timeSpan) {
+                timeSpan.classList.add('skeleton');
+                timeSpan.innerHTML = `載入數據中...`; // Text won't be seen due to skeleton, but holds some width
+            }
+        });
+    }
 
     const entries = Object.entries(symbolsMap);
 
@@ -369,11 +430,25 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Initial fetch
-    fetchLatestQuotes();
+    // --- 載入快取與初始化流程 ---
+    const cache = loadCache();
+    let hasCache = false;
+
+    if (cache) {
+        // 如果有快取，立刻將快取資料渲染到畫面上，讓使用者不用乾等
+        Object.keys(symbolsMap).forEach(indicatorId => {
+            if (cache[indicatorId]) {
+                processQuoteData(indicatorId, cache[indicatorId], true);
+                hasCache = true;
+            }
+        });
+    }
+
+    // Initial fetch (如果在背景抓資料，就不要再顯示骨架屏蓋掉現有快取)
+    fetchLatestQuotes(hasCache);
 
     // Set up interval for every 5 minutes (300,000 ms)
-    setInterval(fetchLatestQuotes, 300000);
+    setInterval(() => fetchLatestQuotes(true), 300000);
 
     // Close modal if user clicks outside of the modal content
     window.addEventListener('click', function(event) {
