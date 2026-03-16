@@ -84,6 +84,28 @@ h1, h2 {
     transform: scale(0.95);
 }
 
+.header-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.header-actions .refresh-btn {
+    margin-top: 0; /* Reset margin since wrapper handles gap */
+}
+
+.guide-btn {
+    background: rgba(0, 255, 170, 0.1);
+    border-color: rgba(0, 255, 170, 0.3);
+    color: var(--accent-safe);
+}
+
+.guide-btn:hover {
+    background: rgba(0, 255, 170, 0.2);
+    box-shadow: 0 0 8px rgba(0, 255, 170, 0.4);
+}
+
 .refresh-btn i.fa-spin {
     animation: fa-spin 1s infinite linear;
 }
