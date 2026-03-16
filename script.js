@@ -471,39 +471,48 @@ document.addEventListener('DOMContentLoaded', () => {
             refreshBtn.style.opacity = '0.7';
             refreshBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> 更新中...';
 
-            // Re-fetch quotes (force skeleton show to give feedback)
-            await fetchLatestQuotes(false);
+            try {
+                // Fetch quotes asynchronously without waiting for them to finish before updating widgets
+                // We use `.catch` to prevent unhandled promise rejections from stopping the rest of the flow
+                fetchLatestQuotes(false).catch(e => console.error("Error fetching quotes during refresh:", e));
 
-            // Re-render TradingView widgets to force them to fetch new data
-            document.querySelectorAll('.tradingview-widget-container script').forEach(script => {
-                const parent = script.parentElement;
-                if (!parent) return;
+                // Re-render TradingView widgets to force them to fetch new data
+                document.querySelectorAll('.tradingview-widget-container script').forEach(script => {
+                    const parent = script.parentElement;
+                    if (!parent) return;
 
-                // Keep the widget container but empty it
-                const widgetDiv = parent.querySelector('.tradingview-widget-container__widget');
-                if (widgetDiv) {
-                    widgetDiv.innerHTML = '';
-                }
+                    // Keep the widget container but empty it
+                    const widgetDiv = parent.querySelector('.tradingview-widget-container__widget');
+                    if (widgetDiv) {
+                        widgetDiv.innerHTML = '';
+                    }
 
-                // Re-create script tag to trigger re-load
-                const newScript = document.createElement('script');
-                newScript.type = 'text/javascript';
-                newScript.src = script.src;
-                newScript.async = true;
-                newScript.innerHTML = script.innerHTML;
+                    // Re-create script tag to trigger re-load
+                    const newScript = document.createElement('script');
+                    newScript.type = 'text/javascript';
+                    newScript.src = script.src;
+                    newScript.async = true;
+                    newScript.innerHTML = script.innerHTML;
 
-                parent.removeChild(script);
-                parent.appendChild(newScript);
-            });
+                    parent.removeChild(script);
+                    parent.appendChild(newScript);
+                });
 
-            // Restore button state with success tick
-            refreshBtn.innerHTML = '<i class="fas fa-check" style="color: var(--accent-safe);"></i> 已更新';
+                // Keep the loading state for at least 1.5 seconds so it doesn't flash too quickly
+                await new Promise(resolve => setTimeout(resolve, 1500));
 
-            setTimeout(() => {
-                refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> 重新整理';
-                refreshBtn.disabled = false;
-                refreshBtn.style.opacity = '1';
-            }, 2000);
+            } catch (err) {
+                console.error("Error during manual refresh:", err);
+            } finally {
+                // Restore button state with success tick
+                refreshBtn.innerHTML = '<i class="fas fa-check" style="color: var(--accent-safe);"></i> 已更新';
+
+                setTimeout(() => {
+                    refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> 重新整理';
+                    refreshBtn.disabled = false;
+                    refreshBtn.style.opacity = '1';
+                }, 2000);
+            }
         });
     }
 });
