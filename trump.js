@@ -104,10 +104,15 @@ async function loadPosts() {
                     <span class="src">${src}</span>
                 </div>
                 <div class="post-text" id="${textId}">${esc(text)}${url ? ` <a href="${esc(url)}" target="_blank" rel="noopener" style="color:var(--accent-neon);font-size:11px;">[原文]</a>` : ''}</div>
-                <div style="margin-bottom: 10px;">
+                <div style="margin-bottom: 10px; display: flex; gap: 8px; flex-wrap: wrap;">
                     <button class="translate-btn" id="btn-${textId}" data-text="${esc(text)}" onclick="translatePost('${textId}', this)">
-                        <i class="fas fa-language"></i> 翻譯
+                        <i class="fas fa-language"></i> 翻譯摘要
                     </button>
+                    ${url ? `
+                    <a href="https://translate.google.com/translate?hl=zh-TW&sl=en&tl=zh-TW&u=${encodeURIComponent(url)}" target="_blank" rel="noopener" class="translate-btn" style="text-decoration: none; background: rgba(56, 189, 248, 0.1); color: var(--accent-neon); border-color: rgba(56, 189, 248, 0.3);">
+                        <i class="fas fa-globe"></i> 翻譯完整網頁
+                    </a>
+                    ` : ''}
                 </div>
                 ${sigTags.length ? `<div class="post-signals"><span class="ps-label">信號:</span>${sigTags.join('')}</div>` : ''}
             </div>`;
