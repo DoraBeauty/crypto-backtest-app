@@ -465,14 +465,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Handle Manual Refresh Button
     const refreshBtn = document.getElementById('refresh-btn');
+    let lastRefreshTime = 0;
+    const REFRESH_COOLDOWN_MS = 60000; // 60 seconds
+
     if (refreshBtn) {
         refreshBtn.addEventListener('click', async () => {
+            const now = Date.now();
             if (refreshBtn.disabled) return;
+
+            // Check cooldown
+            if (now - lastRefreshTime < REFRESH_COOLDOWN_MS) {
+                const remainingSeconds = Math.ceil((REFRESH_COOLDOWN_MS - (now - lastRefreshTime)) / 1000);
+                const originalHtml = refreshBtn.innerHTML;
+
+                refreshBtn.innerHTML = `<i class="fas fa-hourglass-half"></i> 請等 ${remainingSeconds} 秒`;
+                refreshBtn.style.opacity = '0.7';
+                refreshBtn.disabled = true;
+
+                setTimeout(() => {
+                    refreshBtn.innerHTML = originalHtml;
+                    refreshBtn.style.opacity = '1';
+                    refreshBtn.disabled = false;
+                }, 2000);
+                return;
+            }
 
             // Set loading state
             refreshBtn.disabled = true;
             refreshBtn.style.opacity = '0.7';
             refreshBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> 更新中...';
+            lastRefreshTime = now;
 
             try {
                 // Fetch quotes asynchronously without waiting for them to finish before updating widgets
