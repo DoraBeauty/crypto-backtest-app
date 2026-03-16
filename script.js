@@ -459,4 +459,51 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // Handle Manual Refresh Button
+    const refreshBtn = document.getElementById('refresh-btn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', async () => {
+            if (refreshBtn.disabled) return;
+
+            // Set loading state
+            refreshBtn.disabled = true;
+            refreshBtn.style.opacity = '0.7';
+            refreshBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> 更新中...';
+
+            // Re-fetch quotes (force skeleton show to give feedback)
+            await fetchLatestQuotes(false);
+
+            // Re-render TradingView widgets to force them to fetch new data
+            document.querySelectorAll('.tradingview-widget-container script').forEach(script => {
+                const parent = script.parentElement;
+                if (!parent) return;
+
+                // Keep the widget container but empty it
+                const widgetDiv = parent.querySelector('.tradingview-widget-container__widget');
+                if (widgetDiv) {
+                    widgetDiv.innerHTML = '';
+                }
+
+                // Re-create script tag to trigger re-load
+                const newScript = document.createElement('script');
+                newScript.type = 'text/javascript';
+                newScript.src = script.src;
+                newScript.async = true;
+                newScript.innerHTML = script.innerHTML;
+
+                parent.removeChild(script);
+                parent.appendChild(newScript);
+            });
+
+            // Restore button state with success tick
+            refreshBtn.innerHTML = '<i class="fas fa-check" style="color: var(--accent-safe);"></i> 已更新';
+
+            setTimeout(() => {
+                refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> 重新整理';
+                refreshBtn.disabled = false;
+                refreshBtn.style.opacity = '1';
+            }, 2000);
+        });
+    }
 });
