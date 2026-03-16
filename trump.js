@@ -270,6 +270,26 @@ async function translateText(text) {
 
 async function translatePost(elementId, btnElement) {
     const text = btnElement.getAttribute('data-text');
+    const container = document.getElementById(elementId);
+    let translationDiv = container.querySelector('.translated-text');
+
+    if (translationDiv) {
+        // Toggle existing translation
+        if (translationDiv.style.display === 'none') {
+            translationDiv.style.display = 'block';
+            if (btnElement) {
+                btnElement.innerHTML = '<i class="fas fa-eye-slash"></i> 隱藏翻譯';
+            }
+        } else {
+            translationDiv.style.display = 'none';
+            if (btnElement) {
+                btnElement.innerHTML = '<i class="fas fa-language"></i> 顯示翻譯';
+            }
+        }
+        return;
+    }
+
+    // Initial translation request
     if (btnElement) {
         btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 翻譯中...';
         btnElement.disabled = true;
@@ -279,13 +299,15 @@ async function translatePost(elementId, btnElement) {
         const translatedText = await translateText(text);
 
         if (translatedText && translatedText !== text) {
-            const container = document.getElementById(elementId);
-            const translationDiv = document.createElement('div');
+            translationDiv = document.createElement('div');
             translationDiv.className = 'translated-text';
             translationDiv.innerHTML = `<strong>中文翻譯：</strong><br>${esc(translatedText)}`;
             container.appendChild(translationDiv);
 
-            if (btnElement) btnElement.style.display = 'none'; // Hide button after successful translation
+            if (btnElement) {
+                btnElement.disabled = false;
+                btnElement.innerHTML = '<i class="fas fa-eye-slash"></i> 隱藏翻譯';
+            }
         } else {
             throw new Error("Translation returned same string or empty");
         }
