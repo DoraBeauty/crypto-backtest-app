@@ -59,6 +59,35 @@ h1, h2 {
     width: 100%;
 }
 
+/* Refresh Button */
+.refresh-btn {
+    margin-top: 10px;
+    background: rgba(0, 240, 255, 0.1);
+    border: 1px solid rgba(0, 240, 255, 0.3);
+    color: var(--accent-neon);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.refresh-btn:hover {
+    background: rgba(0, 240, 255, 0.2);
+    box-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+}
+
+.refresh-btn:active {
+    transform: scale(0.95);
+}
+
+.refresh-btn i.fa-spin {
+    animation: fa-spin 1s infinite linear;
+}
+
 /* Navigation Tabs */
 .nav-tabs {
     display: flex;
