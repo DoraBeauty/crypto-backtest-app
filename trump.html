@@ -23,7 +23,10 @@
 
         <div class="cache-notice">
             <p>💡 AI 即時分析川普 Truth Social 貼文與市場連動</p>
-            <button id="refresh-btn" class="refresh-btn"><i class="fas fa-sync-alt"></i> 重新整理</button>
+            <div class="header-actions">
+                <button class="refresh-btn guide-btn" onclick="openModal('desc-guide')"><i class="fas fa-book-open"></i> 實戰指南</button>
+                <button id="refresh-btn" class="refresh-btn"><i class="fas fa-sync-alt"></i> 重新整理</button>
+            </div>
         </div>
     </header>
 
@@ -127,6 +130,45 @@
         </section>
 
     </main>
+</div>
+
+<!-- Modal for Practical Guide -->
+<div id="desc-guide" class="modal">
+    <div class="modal-content glass-panel">
+        <span class="close-btn" onclick="closeModal('desc-guide')">&times;</span>
+        <h2><i class="fas fa-book-open"></i> 川普密碼：實戰指南</h2>
+        <div class="modal-body">
+            <div class="logic-item">
+                <p>這個系統的核心價值在於利用川普發言對市場造成的「情緒波動」來尋找短線交易或避險的機會。以下是最佳的實戰用法：</p>
+
+                <h3 style="color:var(--accent-neon); margin-top:15px; margin-bottom:10px; font-size:16px;">1. 每日早晨（美股盤前）第一眼檢查</h3>
+                <ul>
+                    <li><strong>無推文的平靜：</strong> 當「今日推文」為 0 時，S&P 500 有 <strong>80% 的機率上漲</strong> (平均漲幅 +0.409%)。這是一個非常穩定的「沒有消息就是好消息」的做多環境。</li>
+                    <li><strong>推文爆量：</strong> 短時間內異常激增，通常代表有重大事件發生，市場恐慌可能見底，短線可能會有劇烈震盪（有時是買點）。</li>
+                    <li><strong>預測方向：</strong> 直接看 AI 今天判定是「📈 看多」還是「📉 看空」，這是綜合所有信號的結論。</li>
+                </ul>
+
+                <h3 style="color:var(--accent-neon); margin-top:15px; margin-bottom:10px; font-size:16px;">2. 監控「最新推文」的關鍵字信號</h3>
+                <ul>
+                    <li><strong>🔴 最危險信號（純關稅）：</strong> 若推文只有 <span class="vocab-btn" data-term="TARIFF" data-def="關稅。對進口商品徵收的稅，對股市不利。">TARIFF</span> (關稅)，而沒有出現 <span class="vocab-btn" data-term="DEAL" data-def="交易/談判。代表雙方有望達成協議，對股市有利。">DEAL</span> (談判)，這是一個強烈的<strong>做空或避險信號</strong>（隔天股市平均下跌 -1.057%）。</li>
+                    <li><strong>🕊️ 最強買入信號（盤前寬減）：</strong> 在美股盤前出現 <span class="vocab-btn" data-term="RELIEF" data-def="緩解/寬減。代表緊張局勢降溫或壓力解除，通常是強烈的買進訊號。">RELIEF</span> (寬減)，當天勝率極高，是一個強烈的<strong>做多信號</strong>。</li>
+                    <li><strong>⚔️→🟢 經典連招（先攻後談）：</strong> 先發一篇 <span class="vocab-btn" data-term="ATTACK" data-def="攻擊/施壓。指川普在推文中嚴厲批評或威脅對手。">ATTACK</span> (攻擊)，隨後又發了一篇 <span class="vocab-btn" data-term="DEAL" data-def="交易/談判。">DEAL</span> (談判)，這是典型的談判術（勝率達 65.2%），通常是<strong>由空轉多</strong>的轉折點。</li>
+                </ul>
+
+                <h3 style="color:var(--accent-neon); margin-top:15px; margin-bottom:10px; font-size:16px;">3. 觀察「Polymarket 預測」</h3>
+                <ul>
+                    <li>川普發布政策相關推文時，傳統新聞還沒反應，但預測市場上的機率會瞬間跳動。如果某個事件的 YES 機率突然飆升，代表市場用真金白銀認為此事會發生，可提早佈局。</li>
+                </ul>
+
+                <h3 style="color:var(--accent-neon); margin-top:15px; margin-bottom:10px; font-size:16px;">4. 實戰流程總結</h3>
+                <ul style="list-style-type: decimal;">
+                    <li><strong>盤前：</strong> 看「即時狀態」多空。如果推文是 0，當晚美股偏向樂觀。</li>
+                    <li><strong>盤中：</strong> 川普發文時，馬上看「最新推文」有沒有出現 🔴 關稅（準備避險）或 🕊️ 寬減 / 🟢 談判（準備做多）。</li>
+                    <li><strong>盤後：</strong> 看「歷史信號」確認最近幾天的主流情緒是什麼，決定隔天的基本策略。</li>
+                </ul>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Modal for Live Status Explanation -->
