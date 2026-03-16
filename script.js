@@ -435,7 +435,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let hasCache = false;
 
     if (cache) {
-        // 如果有快取，立刻將快取資料渲染到畫面上，讓使用者不用乾等
+        // 如果有快取，立刻將快取資料渲染到畫面上
         Object.keys(symbolsMap).forEach(indicatorId => {
             if (cache[indicatorId]) {
                 processQuoteData(indicatorId, cache[indicatorId], true);
@@ -444,11 +444,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Initial fetch (如果在背景抓資料，就不要再顯示骨架屏蓋掉現有快取)
-    fetchLatestQuotes(hasCache);
+    // 若沒有快取（第一次進入網站），才自動抓取資料
+    // 如果有快取，就等使用者手動按下更新按鈕
+    if (!hasCache) {
+        fetchLatestQuotes(false);
+    }
 
-    // Set up interval for every 5 minutes (300,000 ms)
-    setInterval(() => fetchLatestQuotes(true), 300000);
+    // 移除定時更新機制，改由手動觸發
+    // setInterval(() => fetchLatestQuotes(true), 300000);
 
     // Close modal if user clicks outside of the modal content
     window.addEventListener('click', function(event) {
