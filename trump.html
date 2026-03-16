@@ -35,6 +35,9 @@
                     <h2>即時狀態 <span class="badge">LIVE</span></h2>
                     <span class="desc-short">系統運算與目前預測</span>
                 </div>
+                <button class="toggle-btn" onclick="openModal('desc-status')">
+                    <i class="fas fa-info-circle"></i>
+                </button>
             </div>
             <div class="status-grid">
                 <div class="status-box">
@@ -63,6 +66,9 @@
                     <h2>最新推文 <span class="badge">LIVE</span></h2>
                     <span class="desc-short">川普最新貼文與信號解析</span>
                 </div>
+                <button class="toggle-btn" onclick="openModal('desc-posts')">
+                    <i class="fas fa-info-circle"></i>
+                </button>
             </div>
             <div id="posts-area" class="posts-list">
                 <span class="skeleton" style="width: 100%; height: 100px;"></span>
@@ -77,6 +83,9 @@
                     <h2>歷史信號 <span class="badge">DATA</span></h2>
                     <span class="desc-short">近期觸發的交易信號</span>
                 </div>
+                <button class="toggle-btn" onclick="openModal('desc-signals')">
+                    <i class="fas fa-info-circle"></i>
+                </button>
             </div>
             <div id="signal-area" class="signal-list">
                 <span class="skeleton" style="width: 100%; height: 60px;"></span>
@@ -91,6 +100,9 @@
                     <h2>Polymarket 預測 <span class="badge">LIVE</span></h2>
                     <span class="desc-short">即時川普相關預測市場</span>
                 </div>
+                <button class="toggle-btn" onclick="openModal('desc-pm')">
+                    <i class="fas fa-info-circle"></i>
+                </button>
             </div>
             <div id="pm-live-area" class="table-container">
                 <span class="skeleton" style="width: 100%; height: 150px;"></span>
@@ -104,6 +116,9 @@
                     <h2>模型排行 <span class="badge">AI</span></h2>
                     <span class="desc-short">驗證勝率最高的交易策略</span>
                 </div>
+                <button class="toggle-btn" onclick="openModal('desc-models')">
+                    <i class="fas fa-info-circle"></i>
+                </button>
             </div>
             <div id="model-area" class="table-container">
                 <span class="skeleton" style="width: 100%; height: 200px;"></span>
@@ -111,6 +126,97 @@
         </section>
 
     </main>
+</div>
+
+<!-- Modal for Live Status Explanation -->
+<div id="desc-status" class="modal">
+    <div class="modal-content glass-panel">
+        <span class="close-btn" onclick="closeModal('desc-status')">&times;</span>
+        <h2><i class="fas fa-info-circle"></i> 即時狀態說明</h2>
+        <div class="modal-body">
+            <div class="logic-item">
+                <p>顯示 Trump Code AI 系統目前的運算狀態與預測方向。此專案透過暴力運算 (Brute-force) 超過 3,100 萬種策略，找出與市場連動的最優模型。</p>
+                <ul>
+                    <li><strong>系統健康度：</strong> 若偵測到持續錯誤或勝率下降，系統會觸發斷路器暫停。</li>
+                    <li><strong>今日推文：</strong> 今日發布的推文數量。<strong>(特別注意：當川普今日發文數為 0 時，S&P 500 有 80% 的機率上漲，平均漲幅 +0.409%)</strong></li>
+                    <li><strong>預測方向：</strong> AI 基於今日觸發的信號與 550 條存活規則給出的綜合多空方向。</li>
+                    <li><strong>歷史勝率：</strong> 系統過去 500+ 次真實預測的成功機率。</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Recent Posts Explanation -->
+<div id="desc-posts" class="modal">
+    <div class="modal-content glass-panel">
+        <span class="close-btn" onclick="closeModal('desc-posts')">&times;</span>
+        <h2><i class="fas fa-info-circle"></i> 最新推文說明</h2>
+        <div class="modal-body">
+            <div class="logic-item">
+                <p>列出川普在 Truth Social (或 X) 上發布的最新推文，以及 AI 解析出的關鍵信號。</p>
+                <ul>
+                    <li><strong>Truth Social vs X：</strong> 核心發現：Truth Social 通常提早 6 小時發文，這是一個時間差套利窗口。而如果該推文隨後被轉發到 X (Twitter)，隔天股市平均報酬往往高出 7 倍 (確認信號)。</li>
+                    <li><strong>信號標籤：</strong> 系統偵測到特定字詞或情緒時，會給予推文如「關稅 (Tariff)」、「談判 (Deal)」、「中國 (China)」等標籤。</li>
+                    <li><strong>一鍵翻譯：</strong> 點擊翻譯按鈕可將英文原文直接翻譯為繁體中文。</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Signals Explanation -->
+<div id="desc-signals" class="modal">
+    <div class="modal-content glass-panel">
+        <span class="close-btn" onclick="closeModal('desc-signals')">&times;</span>
+        <h2><i class="fas fa-info-circle"></i> 歷史信號說明</h2>
+        <div class="modal-body">
+            <div class="logic-item">
+                <p>記錄過去幾天觸發的信號總計與 AI 判定當日的市場偏向 (偏多/偏空)。</p>
+                <ul>
+                    <li><strong>最危險信號 (純關稅)：</strong> 當天只有 TARIFF (關稅) 而沒有 DEAL (談判) 信號時，隔天股市平均下跌 -1.057%。</li>
+                    <li><strong>經典連招 (先攻後談)：</strong> 當天先出現 ATTACK (攻擊)，接著出現 DEAL (談判)，勝率達 65.2%，這是典型的川普談判術。</li>
+                    <li><strong>情緒看多：</strong> DEAL (談判)、RELIEF (緩解)、MARKET_BRAG (炫耀股市) 都是典型的看多信號。</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Polymarket Explanation -->
+<div id="desc-pm" class="modal">
+    <div class="modal-content glass-panel">
+        <span class="close-btn" onclick="closeModal('desc-pm')">&times;</span>
+        <h2><i class="fas fa-info-circle"></i> Polymarket 預測說明</h2>
+        <div class="modal-body">
+            <div class="logic-item">
+                <p>追蹤 Polymarket (全球最大去中心化預測市場) 上與川普直接相關的賭盤。</p>
+                <ul>
+                    <li><strong>YES 機率：</strong> 代表市場群眾用真金白銀投票，認為該事件發生的機率。</li>
+                    <li><strong>交易量 (Volume)：</strong> 資金池越大，該機率越具有參考價值。</li>
+                    <li><strong>用途：</strong> 當川普發布政策推文時，可以第一時間觀察 Polymarket 上的機率變化，往往比傳統民調或新聞更早反映真實預期。</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Models Explanation -->
+<div id="desc-models" class="modal">
+    <div class="modal-content glass-panel">
+        <span class="close-btn" onclick="closeModal('desc-models')">&times;</span>
+        <h2><i class="fas fa-info-circle"></i> 模型排行說明</h2>
+        <div class="modal-body">
+            <div class="logic-item">
+                <p>AI 系統在回測 3,150 萬種規則後，留下勝率最高的交易策略模型。</p>
+                <ul>
+                    <li><strong>盤前 RELIEF→當天飆：</strong> 最強買入信號。如果盤前出現 RELIEF 寬減信號，當天勝率極高 (曾創下单日 S&P +9.52% 的紀錄)。</li>
+                    <li><strong>推文爆量→恐慌底：</strong> 當川普推文數量在短時間內不尋常地激增，通常代表市場恐慌到達極點，往往是買點。</li>
+                    <li><strong>簽名切換：</strong> 當川普從一般發言切換到使用「President Donald J. Trump」等正式簽名，通常代表有正式聲明，對市場影響大。</li>
+                </ul>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script src="trump.js"></script>
