@@ -109,8 +109,8 @@ async function loadPosts() {
                         <i class="fas fa-language"></i> 翻譯摘要
                     </button>
                     ${url ? `
-                    <a href="https://translate.google.com/translate?hl=zh-TW&sl=en&tl=zh-TW&u=${encodeURIComponent(url)}" target="_blank" rel="noopener" class="translate-btn" style="text-decoration: none; background: rgba(56, 189, 248, 0.1); color: var(--accent-neon); border-color: rgba(56, 189, 248, 0.3);">
-                        <i class="fas fa-globe"></i> 翻譯完整網頁
+                    <a href="${esc(url)}" target="_blank" rel="noopener" class="translate-btn" style="text-decoration: none; background: rgba(56, 189, 248, 0.1); color: var(--accent-neon); border-color: rgba(56, 189, 248, 0.3);">
+                        <i class="fas fa-external-link-alt"></i> 開啟原文
                     </a>
                     ` : ''}
                 </div>
