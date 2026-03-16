@@ -60,35 +60,31 @@ h1, h2 {
 }
 
 /* Refresh Button */
-.refresh-btn, #refresh-btn {
+.refresh-btn {
     margin-top: 10px;
-    background: rgba(0, 240, 255, 0.1) !important;
-    border: 1px solid rgba(0, 240, 255, 0.3) !important;
-    color: var(--accent-neon) !important;
-    padding: 6px 12px !important;
-    border-radius: 6px !important;
-    font-size: 12px !important;
+    background: rgba(0, 240, 255, 0.1);
+    border: 1px solid rgba(0, 240, 255, 0.3);
+    color: var(--accent-neon);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
     cursor: pointer;
     transition: all 0.2s;
-    display: inline-flex !important;
+    display: inline-flex;
     align-items: center;
     gap: 6px;
 }
 
-#refresh-btn {
-    margin-top: 0;
-}
-
-.refresh-btn:hover, #refresh-btn:hover {
-    background: rgba(0, 240, 255, 0.2) !important;
+.refresh-btn:hover {
+    background: rgba(0, 240, 255, 0.2);
     box-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
 }
 
-.refresh-btn:active, #refresh-btn:active {
+.refresh-btn:active {
     transform: scale(0.95);
 }
 
-.refresh-btn i.fa-spin, #refresh-btn i.fa-spin {
+.refresh-btn i.fa-spin {
     animation: fa-spin 1s infinite linear;
 }
 
