@@ -80,9 +80,20 @@ async function loadPosts() {
             const textId = `post-text-${idx}`;
 
             const sigTags = [];
-            for (const [k, v] of Object.entries(daySigs)) {
-                if (typeof v === 'number' && v > 0 && SIG_LABELS[k.toUpperCase()]) {
-                    sigTags.push(`<span class="sig-tag">${SIG_LABELS[k.toUpperCase()]} ×${v}</span>`);
+            if (Array.isArray(daySigs.rt_signals)) {
+                // Handle new array format: rt_signals: ["TARIFF", "BEARISH"]
+                daySigs.rt_signals.forEach(sig => {
+                    const label = SIG_LABELS[sig.toUpperCase()];
+                    if (label) {
+                        sigTags.push(`<span class="sig-tag">${label}</span>`);
+                    }
+                });
+            } else {
+                // Fallback to old format: { TARIFF: 1, DEAL: 2 }
+                for (const [k, v] of Object.entries(daySigs)) {
+                    if (typeof v === 'number' && v > 0 && SIG_LABELS[k.toUpperCase()]) {
+                        sigTags.push(`<span class="sig-tag">${SIG_LABELS[k.toUpperCase()]} ×${v}</span>`);
+                    }
                 }
             }
 
