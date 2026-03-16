@@ -71,12 +71,13 @@ async function loadPosts() {
         const show = posts.slice(0, 5);
         let html = '';
 
-        show.forEach(p => {
+        show.forEach((p, idx) => {
             const date = (p.date || '').replace('T', ' ').slice(0, 16);
             const text = p.text || '';
             const url = p.url || '';
             const src = p.source === 'x' ? 'X (Twitter)' : 'Truth Social';
             const daySigs = p.signals || {};
+            const textId = `post-text-${idx}`;
 
             const sigTags = [];
             for (const [k, v] of Object.entries(daySigs)) {
@@ -91,7 +92,12 @@ async function loadPosts() {
                     <span class="date">${esc(date)}</span>
                     <span class="src">${src}</span>
                 </div>
-                <div class="post-text">${esc(text)}${url ? ` <a href="${esc(url)}" target="_blank" rel="noopener" style="color:var(--accent-neon);font-size:11px;">[原文]</a>` : ''}</div>
+                <div class="post-text" id="${textId}">${esc(text)}${url ? ` <a href="${esc(url)}" target="_blank" rel="noopener" style="color:var(--accent-neon);font-size:11px;">[原文]</a>` : ''}</div>
+                <div style="margin-bottom: 10px;">
+                    <button class="translate-btn" id="btn-${textId}" data-text="${esc(text)}" onclick="translatePost('${textId}', this)">
+                        <i class="fas fa-language"></i> 翻譯
+                    </button>
+                </div>
                 ${sigTags.length ? `<div class="post-signals"><span class="ps-label">信號:</span>${sigTags.join('')}</div>` : ''}
             </div>`;
         });
@@ -220,7 +226,68 @@ async function loadModels() {
     }
 }
 
+async function translatePost(elementId, btnElement) {
+    const text = btnElement.getAttribute('data-text');
+    if (btnElement) {
+        btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 翻譯中...';
+        btnElement.disabled = true;
+    }
+
+    try {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-TW&dt=t&q=${encodeURIComponent(text)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        let translatedText = '';
+        if (data && data[0]) {
+            data[0].forEach(item => {
+                if (item[0]) translatedText += item[0];
+            });
+        }
+
+        if (translatedText) {
+            const container = document.getElementById(elementId);
+            const translationDiv = document.createElement('div');
+            translationDiv.className = 'translated-text';
+            translationDiv.innerHTML = `<strong>中文翻譯：</strong><br>${esc(translatedText)}`;
+            container.appendChild(translationDiv);
+
+            if (btnElement) btnElement.style.display = 'none'; // Hide button after successful translation
+        }
+    } catch (e) {
+        console.error('Translation failed', e);
+        if (btnElement) {
+            btnElement.innerHTML = '<i class="fas fa-exclamation-triangle"></i> 翻譯失敗';
+            btnElement.disabled = false;
+        }
+    }
+}
+
+function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add('show');
+    }
+}
+
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('show');
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    // Close modal if user clicks outside of the modal content
+    window.addEventListener('click', function(event) {
+        const modals = document.querySelectorAll('.modal.show');
+        modals.forEach(modal => {
+            if (event.target === modal) {
+                closeModal(modal.id);
+            }
+        });
+    });
+
     loadDashboard();
     loadPosts();
     loadSignals();
