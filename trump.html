@@ -33,7 +33,7 @@
         <section class="indicator-card glass-panel">
             <div class="card-header">
                 <div class="title-group">
-                    <h2>即時狀態 <span class="badge">LIVE</span></h2>
+                    <h2>即時狀態 <span class="badge vocab-btn" data-term="LIVE" data-def="即時資料。表示該資料是目前系統最新且即時監測到的狀態。">LIVE</span></h2>
                     <span class="desc-short">系統運算與目前預測</span>
                 </div>
                 <button class="toggle-btn" onclick="openModal('desc-status')">
@@ -64,7 +64,7 @@
         <section class="indicator-card glass-panel">
             <div class="card-header">
                 <div class="title-group">
-                    <h2>最新推文 <span class="badge">LIVE</span></h2>
+                    <h2>最新推文 <span class="badge vocab-btn" data-term="LIVE" data-def="即時資料。表示該資料是目前系統最新且即時監測到的狀態。">LIVE</span></h2>
                     <span class="desc-short">川普最新貼文與信號解析</span>
                 </div>
                 <button class="toggle-btn" onclick="openModal('desc-posts')">
@@ -81,7 +81,7 @@
         <section class="indicator-card glass-panel">
             <div class="card-header">
                 <div class="title-group">
-                    <h2>歷史信號 <span class="badge">DATA</span></h2>
+                    <h2>歷史信號 <span class="badge vocab-btn" data-term="DATA" data-def="歷史數據。表示這是一段時間內累積或已發生的事件記錄，不是即時發生的。">DATA</span></h2>
                     <span class="desc-short">近期觸發的交易信號</span>
                 </div>
                 <button class="toggle-btn" onclick="openModal('desc-signals')">
@@ -98,7 +98,7 @@
         <section class="indicator-card glass-panel">
             <div class="card-header">
                 <div class="title-group">
-                    <h2>Polymarket 預測 <span class="badge">LIVE</span></h2>
+                    <h2><span class="vocab-btn" data-term="Polymarket" data-def="一個全球知名的去中心化預測市場平台，人們可以在上面用加密貨幣下注預測各種未來事件發生的機率。">Polymarket</span> 預測 <span class="badge vocab-btn" data-term="LIVE" data-def="即時資料。表示該資料是目前系統最新且即時監測到的狀態。">LIVE</span></h2>
                     <span class="desc-short">即時川普相關預測市場</span>
                 </div>
                 <button class="toggle-btn" onclick="openModal('desc-pm')">
@@ -114,7 +114,7 @@
         <section class="indicator-card glass-panel">
             <div class="card-header">
                 <div class="title-group">
-                    <h2>模型排行 <span class="badge">AI</span></h2>
+                    <h2>模型排行 <span class="badge vocab-btn" data-term="AI" data-def="Artificial Intelligence (人工智慧)。系統透過演算法與數據回測所訓練出來的預測模型。">AI</span></h2>
                     <span class="desc-short">驗證勝率最高的交易策略</span>
                 </div>
                 <button class="toggle-btn" onclick="openModal('desc-models')">
@@ -136,7 +136,7 @@
         <h2><i class="fas fa-info-circle"></i> 即時狀態說明</h2>
         <div class="modal-body">
             <div class="logic-item">
-                <p>顯示 Trump Code AI 系統目前的運算狀態與預測方向。此專案透過暴力運算 (Brute-force) 超過 3,100 萬種策略，找出與市場連動的最優模型。</p>
+                <p>顯示 <span class="vocab-btn" data-term="Trump Code" data-def="川普密碼。本系統的名稱，專門追蹤與分析川普發言對金融市場影響的模型。">Trump Code</span> <span class="vocab-btn" data-term="AI" data-def="Artificial Intelligence (人工智慧)。系統透過演算法與數據回測所訓練出來的預測模型。">AI</span> 系統目前的運算狀態與預測方向。此專案透過暴力運算 (<span class="vocab-btn" data-term="Brute-force" data-def="暴力破解/窮舉法。一種演算法思維，將所有可能的策略組合全部算過一次，從中找出表現最好的一組。">Brute-force</span>) 超過 3,100 萬種策略，找出與市場連動的最優模型。</p>
                 <ul>
                     <li><strong>系統健康度：</strong> 若偵測到持續錯誤或勝率下降，系統會觸發斷路器暫停。</li>
                     <li><strong>今日推文：</strong> 今日發布的推文數量。<strong>(特別注意：當川普今日發文數為 0 時，S&P 500 有 80% 的機率上漲，平均漲幅 +0.409%)</strong></li>
@@ -155,10 +155,10 @@
         <h2><i class="fas fa-info-circle"></i> 最新推文說明</h2>
         <div class="modal-body">
             <div class="logic-item">
-                <p>列出川普在 Truth Social (或 X) 上發布的最新推文，以及 AI 解析出的關鍵信號。</p>
+                <p>列出川普在 <span class="vocab-btn" data-term="Truth Social" data-def="川普自創的社交媒體平台，通常是他發表聲明的第一管道。">Truth Social</span> (或 <span class="vocab-btn" data-term="X" data-def="前身為 Twitter，全球大型社交媒體平台。川普有時會將貼文同步轉發到此處。">X</span>) 上發布的最新推文，以及 <span class="vocab-btn" data-term="AI" data-def="Artificial Intelligence (人工智慧)。">AI</span> 解析出的關鍵信號。</p>
                 <ul>
-                    <li><strong>Truth Social vs X：</strong> 核心發現：Truth Social 通常提早 6 小時發文，這是一個時間差套利窗口。而如果該推文隨後被轉發到 X (Twitter)，隔天股市平均報酬往往高出 7 倍 (確認信號)。</li>
-                    <li><strong>信號標籤：</strong> 系統偵測到特定字詞或情緒時，會給予推文如「關稅 (Tariff)」、「談判 (Deal)」、「中國 (China)」等標籤。</li>
+                    <li><strong>Truth Social vs X：</strong> 核心發現：<span class="vocab-btn" data-term="Truth Social" data-def="川普自創的社交平台。">Truth Social</span> 通常提早 6 小時發文，這是一個時間差套利窗口。而如果該推文隨後被轉發到 <span class="vocab-btn" data-term="X" data-def="前身為 Twitter。">X</span>，隔天股市平均報酬往往高出 7 倍 (確認信號)。</li>
+                    <li><strong>信號標籤：</strong> 系統偵測到特定字詞或情緒時，會給予推文如「關稅 (<span class="vocab-btn" data-term="TARIFF" data-def="關稅。對進口商品徵收的稅，通常會引發貿易戰擔憂，屬於偏空訊號。">TARIFF</span>)」、「談判 (<span class="vocab-btn" data-term="DEAL" data-def="交易/談判。川普經常自詡為談判大師，這類詞彙通常帶有正面情緒，屬於偏多訊號。">DEAL</span>)」、「中國 (<span class="vocab-btn" data-term="CHINA" data-def="中國。地緣政治與貿易戰的關鍵詞。">CHINA</span>)」等標籤。</li>
                     <li><strong>一鍵翻譯：</strong> 點擊翻譯按鈕可將英文原文直接翻譯為繁體中文。</li>
                 </ul>
             </div>
@@ -173,11 +173,11 @@
         <h2><i class="fas fa-info-circle"></i> 歷史信號說明</h2>
         <div class="modal-body">
             <div class="logic-item">
-                <p>記錄過去幾天觸發的信號總計與 AI 判定當日的市場偏向 (偏多/偏空)。</p>
+                <p>記錄過去幾天觸發的信號總計與 <span class="vocab-btn" data-term="AI" data-def="Artificial Intelligence (人工智慧)。">AI</span> 判定當日的市場偏向 (偏多/偏空)。</p>
                 <ul>
-                    <li><strong>最危險信號 (純關稅)：</strong> 當天只有 TARIFF (關稅) 而沒有 DEAL (談判) 信號時，隔天股市平均下跌 -1.057%。</li>
-                    <li><strong>經典連招 (先攻後談)：</strong> 當天先出現 ATTACK (攻擊)，接著出現 DEAL (談判)，勝率達 65.2%，這是典型的川普談判術。</li>
-                    <li><strong>情緒看多：</strong> DEAL (談判)、RELIEF (緩解)、MARKET_BRAG (炫耀股市) 都是典型的看多信號。</li>
+                    <li><strong>最危險信號 (純關稅)：</strong> 當天只有 <span class="vocab-btn" data-term="TARIFF" data-def="關稅。對進口商品徵收的稅，通常會引發貿易戰擔憂，對股市不利。">TARIFF</span> (關稅) 而沒有 <span class="vocab-btn" data-term="DEAL" data-def="交易/談判。代表雙方有望達成協議，對股市有利。">DEAL</span> (談判) 信號時，隔天股市平均下跌 -1.057%。</li>
+                    <li><strong>經典連招 (先攻後談)：</strong> 當天先出現 <span class="vocab-btn" data-term="ATTACK" data-def="攻擊/施壓。指川普在推文中嚴厲批評或威脅對手。">ATTACK</span> (攻擊)，接著出現 <span class="vocab-btn" data-term="DEAL" data-def="交易/談判。">DEAL</span> (談判)，勝率達 65.2%，這是典型的川普談判術。</li>
+                    <li><strong>情緒看多：</strong> <span class="vocab-btn" data-term="DEAL" data-def="交易/談判。">DEAL</span> (談判)、<span class="vocab-btn" data-term="RELIEF" data-def="緩解/寬減。代表緊張局勢降溫或壓力解除，通常是強烈的買進訊號。">RELIEF</span> (緩解)、<span class="vocab-btn" data-term="MARKET_BRAG" data-def="股市炫耀。川普在推文中誇耀股市上漲或經濟表現優異，通常意味著政府不希望股市下跌。">MARKET_BRAG</span> (炫耀股市) 都是典型的看多信號。</li>
                 </ul>
             </div>
         </div>
@@ -191,11 +191,11 @@
         <h2><i class="fas fa-info-circle"></i> Polymarket 預測說明</h2>
         <div class="modal-body">
             <div class="logic-item">
-                <p>追蹤 Polymarket (全球最大去中心化預測市場) 上與川普直接相關的賭盤。</p>
+                <p>追蹤 <span class="vocab-btn" data-term="Polymarket" data-def="去中心化預測市場平台，讓全球使用者透過加密貨幣預測未來事件。">Polymarket</span> (全球最大去中心化預測市場) 上與川普直接相關的賭盤。</p>
                 <ul>
-                    <li><strong>YES 機率：</strong> 代表市場群眾用真金白銀投票，認為該事件發生的機率。</li>
-                    <li><strong>交易量 (Volume)：</strong> 資金池越大，該機率越具有參考價值。</li>
-                    <li><strong>用途：</strong> 當川普發布政策推文時，可以第一時間觀察 Polymarket 上的機率變化，往往比傳統民調或新聞更早反映真實預期。</li>
+                    <li><strong><span class="vocab-btn" data-term="YES" data-def="同意/會發生。在預測市場中，買 YES 代表你認為該事件會成真。">YES</span> 機率：</strong> 代表市場群眾用真金白銀投票，認為該事件發生的機率。</li>
+                    <li><strong>交易量 (<span class="vocab-btn" data-term="Volume" data-def="交易量/資金池大小。參與該預測事件的總資金量，金額越大代表結果越有共識且難以被操弄。">Volume</span>)：</strong> 資金池越大，該機率越具有參考價值。</li>
+                    <li><strong>用途：</strong> 當川普發布政策推文時，可以第一時間觀察 <span class="vocab-btn" data-term="Polymarket" data-def="去中心化預測市場平台。">Polymarket</span> 上的機率變化，往往比傳統民調或新聞更早反映真實預期。</li>
                 </ul>
             </div>
         </div>
@@ -209,11 +209,11 @@
         <h2><i class="fas fa-info-circle"></i> 模型排行說明</h2>
         <div class="modal-body">
             <div class="logic-item">
-                <p>AI 系統在回測 3,150 萬種規則後，留下勝率最高的交易策略模型。</p>
+                <p><span class="vocab-btn" data-term="AI" data-def="Artificial Intelligence (人工智慧)。">AI</span> 系統在回測 3,150 萬種規則後，留下勝率最高的交易策略模型。</p>
                 <ul>
-                    <li><strong>盤前 RELIEF→當天飆：</strong> 最強買入信號。如果盤前出現 RELIEF 寬減信號，當天勝率極高 (曾創下单日 S&P +9.52% 的紀錄)。</li>
+                    <li><strong>盤前 <span class="vocab-btn" data-term="RELIEF" data-def="緩解/寬減。代表緊張局勢降溫或壓力解除，通常是強烈的買進訊號。">RELIEF</span>→當天飆：</strong> 最強買入信號。如果盤前出現 <span class="vocab-btn" data-term="RELIEF" data-def="緩解/寬減。">RELIEF</span> 寬減信號，當天勝率極高 (曾創下单日 <span class="vocab-btn" data-term="S&P" data-def="Standard & Poor's 500。標準普爾500指數。">S&P</span> +9.52% 的紀錄)。</li>
                     <li><strong>推文爆量→恐慌底：</strong> 當川普推文數量在短時間內不尋常地激增，通常代表市場恐慌到達極點，往往是買點。</li>
-                    <li><strong>簽名切換：</strong> 當川普從一般發言切換到使用「President Donald J. Trump」等正式簽名，通常代表有正式聲明，對市場影響大。</li>
+                    <li><strong>簽名切換：</strong> 當川普從一般發言切換到使用「<span class="vocab-btn" data-term="President Donald J. Trump" data-def="川普的正式署名。當他使用這個全名與頭銜時，通常代表這是一份正式且嚴肅的官方聲明。">President Donald J. Trump</span>」等正式簽名，通常代表有正式聲明，對市場影響大。</li>
                 </ul>
             </div>
         </div>
@@ -221,5 +221,6 @@
 </div>
 
 <script src="trump.js"></script>
+<script src="vocab.js"></script>
 </body>
 </html>
