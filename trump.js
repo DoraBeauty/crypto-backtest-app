@@ -171,14 +171,21 @@ async function loadPolymarketTrump() {
 
         if (markets.length > 0) {
             let html = `<table><thead><tr><th>市場</th><th>YES</th><th>交易量</th></tr></thead><tbody>`;
-            markets.slice(0, 5).forEach(m => {
+
+            const items = markets.slice(0, 5);
+            // Translate the questions asynchronously in parallel using the general translator
+            const translationPromises = items.map(m => translateText(m.question || ''));
+            const translatedQuestions = await Promise.all(translationPromises);
+
+            items.forEach((m, idx) => {
                 const yes = m.yes_price || 0;
                 const yesColor = yes > 0.7 ? 'var(--accent-safe)' : yes < 0.3 ? 'var(--accent-warning)' : 'var(--accent-neon)';
                 const url = m.url || 'https://polymarket.com/search?_q=trump';
+                const questionZH = translatedQuestions[idx];
 
                 html += `
                 <tr>
-                    <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis;"><a href="${esc(url)}" target="_blank" rel="noopener">${esc(m.question || '')}</a></td>
+                    <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis;"><a href="${esc(url)}" target="_blank" rel="noopener" title="原文: ${esc(m.question)}">${esc(questionZH)}</a></td>
                     <td style="color:${yesColor}; font-weight:700;">${(yes * 100).toFixed(1)}%</td>
                     <td style="color:var(--text-secondary)">$${Math.round(m.volume || 0).toLocaleString()}</td>
                 </tr>`;
@@ -237,6 +244,25 @@ async function loadModels() {
     }
 }
 
+// General-purpose translator (en -> zh-TW)
+async function translateText(text) {
+    try {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-TW&dt=t&q=${encodeURIComponent(text)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        let translatedText = '';
+        if (data && data[0]) {
+            data[0].forEach(item => {
+                if (item[0]) translatedText += item[0];
+            });
+        }
+        return translatedText || text; // Fallback to original text if translation returns empty
+    } catch (e) {
+        console.warn('Translation failed:', e);
+        return text; // Fallback to original text on error
+    }
+}
+
 async function translatePost(elementId, btnElement) {
     const text = btnElement.getAttribute('data-text');
     if (btnElement) {
@@ -245,18 +271,9 @@ async function translatePost(elementId, btnElement) {
     }
 
     try {
-        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-TW&dt=t&q=${encodeURIComponent(text)}`;
-        const res = await fetch(url);
-        const data = await res.json();
+        const translatedText = await translateText(text);
 
-        let translatedText = '';
-        if (data && data[0]) {
-            data[0].forEach(item => {
-                if (item[0]) translatedText += item[0];
-            });
-        }
-
-        if (translatedText) {
+        if (translatedText && translatedText !== text) {
             const container = document.getElementById(elementId);
             const translationDiv = document.createElement('div');
             translationDiv.className = 'translated-text';
@@ -264,9 +281,11 @@ async function translatePost(elementId, btnElement) {
             container.appendChild(translationDiv);
 
             if (btnElement) btnElement.style.display = 'none'; // Hide button after successful translation
+        } else {
+            throw new Error("Translation returned same string or empty");
         }
     } catch (e) {
-        console.error('Translation failed', e);
+        console.error('Post translation failed', e);
         if (btnElement) {
             btnElement.innerHTML = '<i class="fas fa-exclamation-triangle"></i> 翻譯失敗';
             btnElement.disabled = false;
