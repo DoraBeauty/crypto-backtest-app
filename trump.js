@@ -330,13 +330,5 @@ document.addEventListener('DOMContentLoaded', () => {
     loadPolymarketTrump();
     loadModels();
 
-    // Auto-refresh timers
-    setInterval(() => {
-        loadDashboard();
-        loadPosts();
-        loadSignals();
-        loadPolymarketTrump();
-    }, 60000); // refresh every minute
-
-    setInterval(loadModels, 300000); // models refresh every 5 mins
+    // Removed automatic interval refreshes. The user must click the manual refresh button.
 });
