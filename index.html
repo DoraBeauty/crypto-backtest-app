@@ -21,8 +21,13 @@
             <a href="trump.html" class="nav-tab">川普密碼</a>
         </nav>
 
-        <div class="cache-notice">
-            <p>💡 報價資料已啟用本地快取，有新數據時將自動高亮更新</p>
+        <div class="header-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px;">
+            <div class="cache-notice" style="margin-bottom: 0; flex-grow: 1;">
+                <p>💡 報價資料已啟用本地快取，有新數據時將自動高亮更新</p>
+            </div>
+            <button id="refresh-btn" class="glass-panel">
+                <i class="fas fa-sync-alt"></i> 重新整理
+            </button>
         </div>
 
         <div class="sentiment-panel glass-panel clickable" onclick="openModal('logic-modal')">
