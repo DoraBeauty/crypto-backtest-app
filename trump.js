@@ -68,7 +68,7 @@ async function loadPosts() {
             return;
         }
 
-        const show = posts.slice(0, 5);
+        const show = posts.slice(0, 20); // Show up to 20 recent posts
         let html = '';
 
         show.forEach((p, idx) => {
