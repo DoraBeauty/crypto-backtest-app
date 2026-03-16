@@ -59,6 +59,38 @@ h1, h2 {
     width: 100%;
 }
 
+/* Navigation Tabs */
+.nav-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.nav-tab {
+    padding: 8px 24px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid var(--border-glass);
+    transition: all 0.3s ease;
+}
+
+.nav-tab:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.nav-tab.active {
+    background: rgba(0, 240, 255, 0.15);
+    color: var(--accent-neon);
+    border-color: rgba(0, 240, 255, 0.3);
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+}
+
 /* Glassmorphism Panel Base */
 .glass-panel {
     background: var(--bg-panel);
@@ -360,6 +392,178 @@ h1, h2 {
    Oil Up = Bad (Red), Oil Down = Good (Green)
    Since the user focuses on risk-on vs risk-off.
 */
+
+
+/* Trump Code Specific Styles */
+.status-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.status-box {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.status-box .status-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.status-box .status-value {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+/* Post List */
+.posts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.post-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 14px;
+}
+
+.post-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.post-text {
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 10px;
+}
+
+.post-signals {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+.ps-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.sig-tag {
+    background: rgba(0, 240, 255, 0.1);
+    color: var(--accent-neon);
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 240, 255, 0.2);
+}
+
+.sig-tag.warning {
+    background: rgba(255, 51, 102, 0.1);
+    color: var(--accent-warning);
+    border-color: rgba(255, 51, 102, 0.2);
+}
+
+.sig-tag.safe {
+    background: rgba(0, 255, 136, 0.1);
+    color: var(--accent-safe);
+    border-color: rgba(0, 255, 136, 0.2);
+}
+
+/* Signal List */
+.signal-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.signal-day {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.signal-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.signal-dir.bull { color: var(--accent-safe); }
+.signal-dir.bear { color: var(--accent-warning); }
+.signal-dir.mix { color: var(--text-secondary); }
+
+.signal-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+/* Table Container */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.table-container table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    text-align: left;
+}
+
+.table-container th,
+.table-container td {
+    padding: 10px 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    white-space: nowrap;
+}
+
+.table-container th {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.table-container td a {
+    color: var(--accent-neon);
+    text-decoration: none;
+}
+
+/* Common Text Colors */
+.text-gold { color: #FFD700; }
+
+.bar-track {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    margin-top: 4px;
+    overflow: hidden;
+}
+
+.bar-fill {
+    height: 100%;
+    background: var(--accent-neon);
+    border-radius: 2px;
+}
 
 
 /* Expandable Details */
