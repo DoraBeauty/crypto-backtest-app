@@ -277,7 +277,42 @@ function closeModal(modalId) {
     }
 }
 
+async function handleRefresh() {
+    const btn = document.getElementById('refresh-btn');
+    if (btn) {
+        btn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> 處理中...';
+        btn.disabled = true;
+    }
+
+    try {
+        await Promise.all([
+            loadDashboard(),
+            loadPosts(),
+            loadSignals(),
+            loadPolymarketTrump(),
+            loadModels()
+        ]);
+    } catch (e) {
+        console.error('Refresh error:', e);
+    } finally {
+        if (btn) {
+            // Add visual cue for success
+            btn.innerHTML = '<i class="fas fa-check"></i> 更新完成';
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fas fa-sync-alt"></i> 重新整理';
+                btn.disabled = false;
+            }, 2000);
+        }
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    // Refresh Button Event Listener
+    const refreshBtn = document.getElementById('refresh-btn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', handleRefresh);
+    }
+
     // Close modal if user clicks outside of the modal content
     window.addEventListener('click', function(event) {
         const modals = document.querySelectorAll('.modal.show');
@@ -288,12 +323,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Initial Load
     loadDashboard();
     loadPosts();
     loadSignals();
     loadPolymarketTrump();
     loadModels();
 
+    // Auto-refresh timers
     setInterval(() => {
         loadDashboard();
         loadPosts();
