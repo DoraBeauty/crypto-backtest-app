@@ -509,6 +509,7 @@ h1, h2 {
     border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 8px;
     padding: 14px;
+    overflow: hidden; /* Prevent content from breaking out */
 }
 
 .post-meta {
@@ -523,6 +524,9 @@ h1, h2 {
     font-size: 14px;
     line-height: 1.5;
     margin-bottom: 10px;
+    word-wrap: break-word; /* Legacy support */
+    overflow-wrap: break-word; /* Modern standard */
+    word-break: break-word; /* Ensures long strings like URLs wrap safely */
 }
 
 .translate-btn {
