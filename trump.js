@@ -14,6 +14,38 @@ function esc(str) {
     );
 }
 
+/**
+ * Formats AI insight text to be more readable.
+ * Escapes HTML first, then replaces internal backend jargon (like D2, C1)
+ * with plain Traditional Chinese. Also formats numbered lists into line breaks.
+ */
+function formatAIInsightText(text) {
+    if (!text) return '';
+    let formatted = esc(text);
+
+    // Replace known model IDs and jargon with readable terms
+    const replacements = [
+        { pattern: /\bD2\s*簽名信號/gi, replacement: '「正式聲明」指標' },
+        { pattern: /\bD2\b/g, replacement: '「正式聲明」指標' },
+        { pattern: /\bC1\b/g, replacement: '「推文爆發後長沉默」指標' },
+        { pattern: /\binterest_rate\b/gi, replacement: '「利率」關鍵字' },
+        { pattern: /\bTrump\s*的模式/gi, replacement: '川普的發文模式' },
+        { pattern: /\bTrump\b/gi, replacement: '川普' },
+        { pattern: /\bFed\b/gi, replacement: '聯準會 (Fed)' },
+    ];
+
+    replacements.forEach(({ pattern, replacement }) => {
+        formatted = formatted.replace(pattern, replacement);
+    });
+
+    // Format numbered lists (e.g., "(1) ... (2) ...") by inserting line breaks
+    formatted = formatted.replace(/(\(\d+\))/g, '<br><br>$1');
+    // Remove leading line breaks if the text starts with a list item
+    formatted = formatted.replace(/^(?:<br>)+/, '');
+
+    return formatted;
+}
+
 const SIG_LABELS = {
     TARIFF:      '🔴 關稅',
     DEAL:        '🟢 談判',
@@ -58,7 +90,8 @@ async function loadDashboard() {
 
         let insightHtml = '';
         if (d.dual_platform) {
-            insightHtml += `<div style="margin-bottom: 10px;"><strong><i class="fas fa-chart-line"></i> 趨勢分析：</strong><br>${esc(d.dual_platform)}</div>`;
+            // Apply jargon translation formatting
+            insightHtml += `<div style="margin-bottom: 10px;"><strong><i class="fas fa-chart-line"></i> 趨勢分析：</strong><br>${formatAIInsightText(d.dual_platform)}</div>`;
         }
 
         // Only display if there's actual insight content (excluding the backend dev notes)
