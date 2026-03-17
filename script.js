@@ -10,18 +10,6 @@ const sentimentState = {
     eth: 'neutral'
 };
 
-// Track whether the user has manually overridden the trend for a specific indicator
-const manualOverrideState = {
-    spx: false,
-    vix: false,
-    dxy: false,
-    oil: false,
-    gold: false,
-    yield: false,
-    btc: false,
-    eth: false
-};
-
 // Mapping of indicators to Yahoo Finance symbols
 const symbolsMap = {
     spx: '^GSPC',  // S&P 500
@@ -59,40 +47,49 @@ function toggleDetails(indicatorId) {
  */
 function autoJudgeTrend(indicatorId, changePercent) {
     let trend = 'neutral';
+    let threshold = 0.3; // Default
 
     // Define thresholds based on the indicator type
     if (indicatorId === 'spx' || indicatorId === 'btc' || indicatorId === 'eth') {
+        threshold = 0.5;
         if (changePercent > 0.5) trend = 'up';
         else if (changePercent < -0.5) trend = 'down';
     } else if (indicatorId === 'vix') {
+        threshold = 3.0;
         if (changePercent > 3.0) trend = 'up';
         else if (changePercent < -3.0) trend = 'down';
     } else {
         // gold, oil, dxy, yield
+        threshold = 0.3;
         if (changePercent > 0.3) trend = 'up';
         else if (changePercent < -0.3) trend = 'down';
     }
 
-    // Call setTrend programmatically. isManual is false to respect user overrides.
-    setTrend(indicatorId, trend, false);
+    // Update UI reason text
+    const reasonDiv = document.getElementById(`reason-${indicatorId}`);
+    if (reasonDiv) {
+        const sign = changePercent > 0 ? '+' : '';
+        const trendText = trend === 'up' ? '漲幅' : (trend === 'down' ? '跌幅' : '波動');
+
+        let msg = `🤖 系統自動判定：日${trendText} ${sign}${changePercent.toFixed(2)}% `;
+        if (trend !== 'neutral') {
+            msg += `(觸發 ±${threshold}% 標準)`;
+        } else {
+            msg += `(未達 ±${threshold}% 標準)`;
+        }
+        reasonDiv.innerText = msg;
+    }
+
+    // Call setTrend programmatically.
+    setTrend(indicatorId, trend);
 }
 
 /**
  * Sets the trend for an indicator and recalculates overall sentiment.
  * @param {string} indicatorId - The ID of the indicator.
  * @param {string} trend - 'up', 'neutral', or 'down'.
- * @param {boolean} isManual - Whether the change was triggered manually by the user.
  */
-function setTrend(indicatorId, trend, isManual = true) {
-    // If it's an auto-update but the user has already manually overridden it, ignore the auto-update
-    if (!isManual && manualOverrideState[indicatorId]) {
-        return;
-    }
-
-    if (isManual) {
-        manualOverrideState[indicatorId] = true;
-    }
-
+function setTrend(indicatorId, trend) {
     // 1. Update visual state of buttons within the specific card
     const card = document.getElementById(`card-${indicatorId}`);
     const buttons = card.querySelectorAll('.trend-btn');
@@ -441,25 +438,6 @@ window.closeModal = closeModal;
 // Initialize on load
 document.addEventListener('DOMContentLoaded', () => {
     console.log("Market Dashboard Initialized.");
-
-    // Bind click events explicitly for trend buttons to pass isManual=true
-    document.querySelectorAll('.trend-btn').forEach(btn => {
-        // Remove standard onclick attributes in HTML to avoid double firing
-        btn.removeAttribute('onclick');
-
-        btn.addEventListener('click', function() {
-            // Find parent card to get indicator ID
-            const card = this.closest('.indicator-card');
-            const indicatorId = card.id.replace('card-', '');
-
-            // Determine trend from class
-            let trend = 'neutral';
-            if (this.classList.contains('up')) trend = 'up';
-            else if (this.classList.contains('down')) trend = 'down';
-
-            setTrend(indicatorId, trend, true);
-        });
-    });
 
     // --- 載入快取與初始化流程 ---
     const cache = loadCache();
