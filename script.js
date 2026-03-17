@@ -375,6 +375,10 @@ async function fetchQuoteWithRetry(indicatorId, symbol, retries = 3) {
                 timeSpan.classList.remove('skeleton');
                 timeSpan.innerHTML = `<span class="text-neutral">無法載入數據，請稍後再試</span>`;
             }
+            const reasonDiv = document.getElementById(`reason-${indicatorId}`);
+            if (reasonDiv) {
+                reasonDiv.innerHTML = `<span class="text-neutral">❌ 系統無法取得即時報價，請檢查網路連線或稍後重試。</span>`;
+            }
             return false; // Failed
         }
     }
