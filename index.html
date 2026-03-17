@@ -97,10 +97,12 @@
             </div>
 
             <div class="trend-selector">
-                <button class="trend-btn up" onclick="setTrend('spx', 'up')">上漲 (多頭)</button>
-                <button class="trend-btn neutral active" onclick="setTrend('spx', 'neutral')">震盪</button>
-                <button class="trend-btn down" onclick="setTrend('spx', 'down')">下跌 (空頭)</button>
+                <button class="trend-btn up" >上漲 (多頭)</button>
+                <button class="trend-btn neutral active" >震盪</button>
+                <button class="trend-btn down" >下跌 (空頭)</button>
             </div>
+
+            <div id="reason-spx" class="auto-judge-reason text-neutral" style="font-size: 0.8rem; text-align: center; margin-bottom: 12px;">系統分析中...</div>
 
             <div class="details-content" id="details-spx">
                 <ul>
@@ -146,10 +148,12 @@
             </div>
 
             <div class="trend-selector">
-                <button class="trend-btn up" onclick="setTrend('vix', 'up')">上升 (恐慌)</button>
-                <button class="trend-btn neutral active" onclick="setTrend('vix', 'neutral')">震盪</button>
-                <button class="trend-btn down" onclick="setTrend('vix', 'down')">下降 (穩定)</button>
+                <button class="trend-btn up" >上升 (恐慌)</button>
+                <button class="trend-btn neutral active" >震盪</button>
+                <button class="trend-btn down" >下降 (穩定)</button>
             </div>
+
+            <div id="reason-vix" class="auto-judge-reason text-neutral" style="font-size: 0.8rem; text-align: center; margin-bottom: 12px;">系統分析中...</div>
 
             <div class="details-content" id="details-vix">
                 <ul>
@@ -196,10 +200,12 @@
             </div>
 
             <div class="trend-selector">
-                <button class="trend-btn up" onclick="setTrend('dxy', 'up')">強勢 (收縮)</button>
-                <button class="trend-btn neutral active" onclick="setTrend('dxy', 'neutral')">震盪</button>
-                <button class="trend-btn down" onclick="setTrend('dxy', 'down')">弱勢 (寬鬆)</button>
+                <button class="trend-btn up" >強勢 (收縮)</button>
+                <button class="trend-btn neutral active" >震盪</button>
+                <button class="trend-btn down" >弱勢 (寬鬆)</button>
             </div>
+
+            <div id="reason-dxy" class="auto-judge-reason text-neutral" style="font-size: 0.8rem; text-align: center; margin-bottom: 12px;">系統分析中...</div>
 
             <div class="details-content" id="details-dxy">
                 <ul>
@@ -245,10 +251,12 @@
             </div>
 
             <div class="trend-selector">
-                <button class="trend-btn up" onclick="setTrend('oil', 'up')">上漲 (通膨/需求)</button>
-                <button class="trend-btn neutral active" onclick="setTrend('oil', 'neutral')">震盪</button>
-                <button class="trend-btn down" onclick="setTrend('oil', 'down')">下跌 (衰退疑慮)</button>
+                <button class="trend-btn up" >上漲 (通膨/需求)</button>
+                <button class="trend-btn neutral active" >震盪</button>
+                <button class="trend-btn down" >下跌 (衰退疑慮)</button>
             </div>
+
+            <div id="reason-oil" class="auto-judge-reason text-neutral" style="font-size: 0.8rem; text-align: center; margin-bottom: 12px;">系統分析中...</div>
 
             <div class="details-content" id="details-oil">
                 <ul>
@@ -295,10 +303,12 @@
             </div>
 
             <div class="trend-selector">
-                <button class="trend-btn up" onclick="setTrend('gold', 'up')">上漲 (避險/通膨)</button>
-                <button class="trend-btn neutral active" onclick="setTrend('gold', 'neutral')">震盪</button>
-                <button class="trend-btn down" onclick="setTrend('gold', 'down')">下跌 (風險偏好)</button>
+                <button class="trend-btn up" >上漲 (避險/通膨)</button>
+                <button class="trend-btn neutral active" >震盪</button>
+                <button class="trend-btn down" >下跌 (風險偏好)</button>
             </div>
+
+            <div id="reason-gold" class="auto-judge-reason text-neutral" style="font-size: 0.8rem; text-align: center; margin-bottom: 12px;">系統分析中...</div>
 
             <div class="details-content" id="details-gold">
                 <ul>
@@ -345,10 +355,12 @@
             </div>
 
             <div class="trend-selector">
-                <button class="trend-btn up" onclick="setTrend('yield', 'up')">上升 (緊縮)</button>
-                <button class="trend-btn neutral active" onclick="setTrend('yield', 'neutral')">震盪</button>
-                <button class="trend-btn down" onclick="setTrend('yield', 'down')">下降 (寬鬆)</button>
+                <button class="trend-btn up" >上升 (緊縮)</button>
+                <button class="trend-btn neutral active" >震盪</button>
+                <button class="trend-btn down" >下降 (寬鬆)</button>
             </div>
+
+            <div id="reason-yield" class="auto-judge-reason text-neutral" style="font-size: 0.8rem; text-align: center; margin-bottom: 12px;">系統分析中...</div>
 
             <div class="details-content" id="details-yield">
                 <ul>
@@ -393,10 +405,12 @@
             </div>
 
             <div class="trend-selector">
-                <button class="trend-btn up" onclick="setTrend('btc', 'up')">強勢上漲</button>
-                <button class="trend-btn neutral active" onclick="setTrend('btc', 'neutral')">震盪整理</button>
-                <button class="trend-btn down" onclick="setTrend('btc', 'down')">走弱下跌</button>
+                <button class="trend-btn up" >強勢上漲</button>
+                <button class="trend-btn neutral active" >震盪整理</button>
+                <button class="trend-btn down" >走弱下跌</button>
             </div>
+
+            <div id="reason-btc" class="auto-judge-reason text-neutral" style="font-size: 0.8rem; text-align: center; margin-bottom: 12px;">系統分析中...</div>
 
             <div class="details-content" id="details-btc">
                 <ul>
@@ -441,10 +455,12 @@
             </div>
 
             <div class="trend-selector">
-                <button class="trend-btn up" onclick="setTrend('eth', 'up')">資金湧入</button>
-                <button class="trend-btn neutral active" onclick="setTrend('eth', 'neutral')">震盪跟隨</button>
-                <button class="trend-btn down" onclick="setTrend('eth', 'down')">動能衰竭</button>
+                <button class="trend-btn up" >資金湧入</button>
+                <button class="trend-btn neutral active" >震盪跟隨</button>
+                <button class="trend-btn down" >動能衰竭</button>
             </div>
+
+            <div id="reason-eth" class="auto-judge-reason text-neutral" style="font-size: 0.8rem; text-align: center; margin-bottom: 12px;">系統分析中...</div>
 
             <div class="details-content" id="details-eth">
                 <ul>
