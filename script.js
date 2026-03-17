@@ -5,7 +5,9 @@ const sentimentState = {
     dxy: 'neutral',
     oil: 'neutral',
     gold: 'neutral',
-    yield: 'neutral'
+    yield: 'neutral',
+    btc: 'neutral',
+    eth: 'neutral'
 };
 
 // Track whether the user has manually overridden the trend for a specific indicator
@@ -15,7 +17,9 @@ const manualOverrideState = {
     dxy: false,
     oil: false,
     gold: false,
-    yield: false
+    yield: false,
+    btc: false,
+    eth: false
 };
 
 // Mapping of indicators to Yahoo Finance symbols
@@ -25,7 +29,9 @@ const symbolsMap = {
     dxy: 'DX-Y.NYB',
     oil: 'CL=F',   // Crude Oil Futures
     gold: 'GC=F',  // Gold Futures
-    yield: '^TNX'  // 10-Year Treasury Note Yield
+    yield: '^TNX', // 10-Year Treasury Note Yield
+    btc: 'BTC-USD',
+    eth: 'ETH-USD'
 };
 
 /**
@@ -44,6 +50,31 @@ function toggleDetails(indicatorId) {
         detailsDiv.classList.add('active');
         toggleBtn.classList.add('rotate-180');
     }
+}
+
+/**
+ * Automatically judges the trend based on the daily change percentage.
+ * @param {string} indicatorId - The ID of the indicator.
+ * @param {number} changePercent - The percentage change from previous close.
+ */
+function autoJudgeTrend(indicatorId, changePercent) {
+    let trend = 'neutral';
+
+    // Define thresholds based on the indicator type
+    if (indicatorId === 'spx' || indicatorId === 'btc' || indicatorId === 'eth') {
+        if (changePercent > 0.5) trend = 'up';
+        else if (changePercent < -0.5) trend = 'down';
+    } else if (indicatorId === 'vix') {
+        if (changePercent > 3.0) trend = 'up';
+        else if (changePercent < -3.0) trend = 'down';
+    } else {
+        // gold, oil, dxy, yield
+        if (changePercent > 0.3) trend = 'up';
+        else if (changePercent < -0.3) trend = 'down';
+    }
+
+    // Call setTrend programmatically. isManual is false to respect user overrides.
+    setTrend(indicatorId, trend, false);
 }
 
 /**
@@ -125,6 +156,14 @@ function calculateOverallSentiment() {
     // Oil weight reduced as it's an ambiguous signal (can be demand or supply shock)
     if (s.oil === 'up') riskOffScore += 0.5;
     if (s.oil === 'down') riskOnScore += 0.5;
+
+    // Evaluate Crypto (Liquidity / Risk-On sentiment)
+    // BTC and ETH going up strongly suggests high market liquidity and risk appetite
+    if (s.btc === 'up') riskOnScore += 1;
+    if (s.btc === 'down') riskOffScore += 1;
+
+    if (s.eth === 'up') riskOnScore += 0.5;
+    if (s.eth === 'down') riskOffScore += 0.5;
 
     Object.values(s).forEach(state => {
         if (state === 'neutral') neutralCount++;
@@ -248,16 +287,8 @@ function processQuoteData(indicatorId, result, isInitialLoad = false) {
     // Calculate percentage change
     const percentChange = ((currentPrice - prevClose) / prevClose) * 100;
 
-    // Determine trend (threshold ±0.5%)
-    let autoTrend = 'neutral';
-    if (percentChange > 0.5) {
-        autoTrend = 'up';
-    } else if (percentChange < -0.5) {
-        autoTrend = 'down';
-    }
-
-    // Update trend (will be ignored if user manually overrode)
-    setTrend(indicatorId, autoTrend, false);
+    // Automatically judge and set the trend (will be ignored if user manually overrode)
+    autoJudgeTrend(indicatorId, percentChange);
 
     // Update timestamp and price in UI
     const timeSpan = document.getElementById(`time-${indicatorId}`);
