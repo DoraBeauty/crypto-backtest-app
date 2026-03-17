@@ -51,6 +51,26 @@ async function loadDashboard() {
         if (d.stats) {
             document.getElementById('s-hit').textContent = (d.stats.hit_rate || 61.3) + '%';
         }
+
+        // Render AI Insights
+        const insightPanel = document.getElementById('ai-insight-panel');
+        const insightContent = document.getElementById('ai-insight-content');
+
+        let insightHtml = '';
+        if (d.dual_platform) {
+            insightHtml += `<div style="margin-bottom: 10px;"><strong><i class="fas fa-chart-line"></i> 趨勢分析：</strong><br>${esc(d.dual_platform)}</div>`;
+        }
+        if (d.opus_priority) {
+            insightHtml += `<div><strong><i class="fas fa-exclamation-circle" style="color: var(--accent-warning);"></i> 系統優化建議：</strong><br>${esc(d.opus_priority)}</div>`;
+        }
+
+        if (insightHtml) {
+            insightContent.innerHTML = insightHtml;
+            insightPanel.style.display = 'block';
+        } else {
+            insightPanel.style.display = 'none';
+        }
+
     } catch (e) {
         console.warn('Dashboard load failed:', e);
     }
