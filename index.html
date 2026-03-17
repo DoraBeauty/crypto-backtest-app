@@ -46,6 +46,20 @@
             </div>
             <p class="sentiment-desc" id="sentiment-desc">請在下方各指標標記目前趨勢，系統將自動分析市場資金流向與情緒壓力。</p>
         </div>
+
+        <div class="insight-panel glass-panel" style="margin-top: 15px; border-left: 4px solid var(--accent-neon);">
+            <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 8px;">
+                <i class="fas fa-robot" style="color: var(--accent-neon); font-size: 1.2rem;"></i>
+                <h3 style="margin: 0; font-size: 1rem; color: #fff;">市場觀測重點 (實戰指南)</h3>
+            </div>
+            <div style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
+                <p>📈 <strong>大盤與殖利率：</strong><br>當 <span style="color:#FFF;">S&P 500</span> 上漲，且 <span style="color:#FFF;">美國 10 年期公債殖利率 (US10Y)</span> 穩定或下降時，是典型的多頭健康環境。若殖利率急升，需留意科技股估值壓力。</p>
+                <br>
+                <p>📉 <strong>恐慌與避險：</strong><br>若 <span style="color:#FFF;">VIX (恐慌指數)</span> 突破 20，且 <span style="color:#FFF;">黃金 (GOLD)</span> 同步飆升，代表資金正在大舉撤出風險資產。請繫好安全帶，減少持倉或增加避險部位。</p>
+                <br>
+                <p>🚀 <strong>流動性指標：</strong><br><span style="color:#F7931A;">比特幣 (BTC)</span> 往往比美股更早反映市場對「資金寬鬆」的預期。若比特幣在大盤盤整時率先突破，常暗示後續美股資金動能無虞。</p>
+            </div>
+        </div>
     </header>
 
     <main class="indicators-container">
@@ -346,8 +360,104 @@
             </div>
         </section>
 
+        <!-- Bitcoin (BTC) Card -->
+        <section class="indicator-card glass-panel" id="card-btc">
+            <div class="card-header">
+                <div class="title-group">
+                    <h2><span class="icon" style="color:#F7931A;"><i class="fab fa-bitcoin"></i></span> 比特幣 (BTC)</h2>
+                    <span class="desc-short">數位黃金與流動性風向球</span>
+                </div>
+                <button class="toggle-btn" onclick="toggleDetails('btc')">
+                    <span class="icon-down">▼</span>
+                </button>
+            </div>
+            <div class="chart-container" id="chart-btc">
+                <!-- TradingView Widget BEGIN -->
+                <div class="tradingview-widget-container">
+                  <div class="tradingview-widget-container__widget"></div>
+                  <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+                  {
+                  "symbol": "BINANCE:BTCUSDT",
+                  "width": "100%",
+                  "height": "100%",
+                  "locale": "zh_TW",
+                  "dateRange": "1M",
+                  "colorTheme": "dark",
+                  "isTransparent": true,
+                  "autosize": true,
+                  "largeChartUrl": ""
+                }
+                  </script>
+                </div>
+                <!-- TradingView Widget END -->
+            </div>
+
+            <div class="trend-selector">
+                <button class="trend-btn up" onclick="setTrend('btc', 'up')">強勢上漲</button>
+                <button class="trend-btn neutral active" onclick="setTrend('btc', 'neutral')">震盪整理</button>
+                <button class="trend-btn down" onclick="setTrend('btc', 'down')">走弱下跌</button>
+            </div>
+
+            <div class="details-content" id="details-btc">
+                <ul>
+                    <li><strong>一言以蔽之：</strong> 全球流動性最敏感的神經末梢，傳統金融的「礦坑金絲雀」。</li>
+                    <li><strong>本質：</strong> 既是抗通膨的數位資產，也是對央行放水、寬鬆政策反應最直接的高動能標的。</li>
+                    <li><strong>加密貨幣上漲：</strong> 資金充沛，市場願意承擔高風險。常領先於美股反映聯準會的寬鬆預期。</li>
+                    <li><strong>加密貨幣下跌：</strong> 流動性收緊，資金回防保守資產。若無預警暴跌，數日內美股科技股常跟隨修正。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Ethereum (ETH) Card -->
+        <section class="indicator-card glass-panel" id="card-eth">
+            <div class="card-header">
+                <div class="title-group">
+                    <h2><span class="icon" style="color:#627EEA;"><i class="fab fa-ethereum"></i></span> 以太幣 (ETH)</h2>
+                    <span class="desc-short">區塊鏈應用與山寨幣指標</span>
+                </div>
+                <button class="toggle-btn" onclick="toggleDetails('eth')">
+                    <span class="icon-down">▼</span>
+                </button>
+            </div>
+            <div class="chart-container" id="chart-eth">
+                <!-- TradingView Widget BEGIN -->
+                <div class="tradingview-widget-container">
+                  <div class="tradingview-widget-container__widget"></div>
+                  <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+                  {
+                  "symbol": "BINANCE:ETHUSDT",
+                  "width": "100%",
+                  "height": "100%",
+                  "locale": "zh_TW",
+                  "dateRange": "1M",
+                  "colorTheme": "dark",
+                  "isTransparent": true,
+                  "autosize": true,
+                  "largeChartUrl": ""
+                }
+                  </script>
+                </div>
+                <!-- TradingView Widget END -->
+            </div>
+
+            <div class="trend-selector">
+                <button class="trend-btn up" onclick="setTrend('eth', 'up')">資金湧入</button>
+                <button class="trend-btn neutral active" onclick="setTrend('eth', 'neutral')">震盪跟隨</button>
+                <button class="trend-btn down" onclick="setTrend('eth', 'down')">動能衰竭</button>
+            </div>
+
+            <div class="details-content" id="details-eth">
+                <ul>
+                    <li><strong>一言以蔽之：</strong> 加密貨幣市場的「那斯達克指數」，反映區塊鏈生態系的繁榮度。</li>
+                    <li><strong>本質：</strong> 支撐 DeFi (去中心化金融) 等應用的底層貨幣，與創新科技投資情緒高度綁定。</li>
+                    <li><strong>以太強於比特：</strong> 代表市場風險偏好極高，資金願意投入更高風險的「山寨幣 (Altcoins)」，是全面牛市特徵。</li>
+                    <li><strong>以太弱於比特：</strong> 資金保守化，加密市場缺乏新故事，投資人只敢持有最穩健的比特幣。</li>
+                </ul>
+            </div>
+        </section>
+
         <div class="footer-note">
-            <p>上述六大總經指標如同市場的儀表板。當各指標方向同步時，市場通常會展現出較為明確的趨勢。</p>
+            <p>上述八大總經指標如同市場的儀表板。當各指標方向同步時，市場通常會展現出較為明確的趨勢。</p>
             <p style="margin-top: 10px;">在訊號尚未同步且未出現明確關鍵突破或跌破前，建議保持觀望，耐心等待市場表態。</p>
             <p style="margin-top: 10px; color: var(--accent-neon); font-weight: bold;">風險控管永遠是首要任務，長期存活於市場，往往比捕捉單次短線行情更為重要。</p>
         </div>
