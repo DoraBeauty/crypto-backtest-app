@@ -60,10 +60,8 @@ async function loadDashboard() {
         if (d.dual_platform) {
             insightHtml += `<div style="margin-bottom: 10px;"><strong><i class="fas fa-chart-line"></i> 趨勢分析：</strong><br>${esc(d.dual_platform)}</div>`;
         }
-        if (d.opus_priority) {
-            insightHtml += `<div><strong><i class="fas fa-exclamation-circle" style="color: var(--accent-warning);"></i> 系統優化建議：</strong><br>${esc(d.opus_priority)}</div>`;
-        }
 
+        // Only display if there's actual insight content (excluding the backend dev notes)
         if (insightHtml) {
             insightContent.innerHTML = insightHtml;
             insightPanel.style.display = 'block';
