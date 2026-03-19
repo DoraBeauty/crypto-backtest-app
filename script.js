@@ -271,7 +271,16 @@ function saveCache(indicatorId, data) {
  * @param {boolean} isInitialLoad - True if this is from local storage cache during page load.
  */
 function processQuoteData(indicatorId, result, isInitialLoad = false) {
-    if (!result || !result.regularMarketPrice || !result.regularMarketPreviousClose) return;
+    if (!result || result.regularMarketPrice == null || result.regularMarketPreviousClose == null) {
+        // Log to console but also ensure UI updates from skeleton loader
+        console.warn(`[${indicatorId}] 暫無有效報價資料:`, result);
+        const timeSpan = document.getElementById(`time-${indicatorId}`);
+        if (timeSpan) {
+            timeSpan.classList.remove('skeleton');
+            timeSpan.innerHTML = `<span class="text-neutral">暫無報價</span>`;
+        }
+        return;
+    }
 
     const currentPrice = result.regularMarketPrice;
     const prevClose = result.regularMarketPreviousClose;
@@ -351,12 +360,18 @@ async function fetchQuoteWithRetry(indicatorId, symbol, retries = 3) {
         if (parsedData && parsedData.chart && parsedData.chart.result && parsedData.chart.result.length > 0) {
             const resultData = parsedData.chart.result[0].meta;
 
+            // Extract the most reliable price data available
+            // Note: Crypto and Yield symbols might not have regularMarketPrice or chartPreviousClose at certain times
+            const price = resultData.regularMarketPrice !== undefined && resultData.regularMarketPrice !== null ? resultData.regularMarketPrice : (resultData.chartPreviousClose || resultData.previousClose);
+            const prevClose = resultData.regularMarketPreviousClose !== undefined && resultData.regularMarketPreviousClose !== null ? resultData.regularMarketPreviousClose : (resultData.chartPreviousClose || resultData.previousClose);
+            const time = resultData.regularMarketTime;
+
             // Format and process the data
             processQuoteData(indicatorId, {
                 symbol: resultData.symbol,
-                regularMarketPrice: resultData.regularMarketPrice,
-                regularMarketPreviousClose: resultData.chartPreviousClose,
-                regularMarketTime: resultData.regularMarketTime
+                regularMarketPrice: price,
+                regularMarketPreviousClose: prevClose,
+                regularMarketTime: time
             });
             return true; // Success
         }
