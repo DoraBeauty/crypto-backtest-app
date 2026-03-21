@@ -220,10 +220,16 @@ async function loadSignals() {
 
 async function loadPolymarketTrump() {
     const area = document.getElementById('pm-live-area');
+    const descArea = document.getElementById('pm-desc');
     try {
         const res = await fetch(BASE + '/api/polymarket-trump');
         const d = await res.json();
         const markets = d.markets || [];
+        const total = d.total || markets.length;
+
+        if (descArea && total > 0) {
+            descArea.textContent = `共 ${total} 個活躍市場`;
+        }
 
         if (markets.length > 0) {
             let html = `<table><thead><tr><th>市場</th><th>YES</th><th>交易量</th></tr></thead><tbody>`;
@@ -385,6 +391,35 @@ function closeModal(modalId) {
     }
 }
 
+async function loadTrumpCoin() {
+    const priceEl = document.getElementById('coin-price');
+    const changeEl = document.getElementById('coin-change');
+
+    if (!priceEl || !changeEl) return;
+
+    try {
+        const resp = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=official-trump&vs_currencies=usd&include_24hr_change=true');
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const data = await resp.json();
+        const coin = data['official-trump'];
+        if (!coin || !coin.usd) throw new Error('No price data');
+
+        const price = coin.usd;
+        const change = coin.usd_24h_change || 0;
+
+        priceEl.textContent = `$${price.toFixed(4)}`;
+
+        changeEl.textContent = `${change > 0 ? '+' : ''}${change.toFixed(2)}%`;
+        changeEl.className = `status-value ${change > 0 ? 'text-up' : change < 0 ? 'text-down' : 'text-neutral'}`;
+        changeEl.style.color = change > 0 ? 'var(--accent-safe)' : change < 0 ? 'var(--accent-warning)' : 'var(--text-secondary)';
+
+    } catch (e) {
+        console.warn('TRUMP coin fetch failed:', e);
+        priceEl.textContent = '載入失敗';
+        changeEl.textContent = '--';
+    }
+}
+
 async function handleRefresh() {
     const btn = document.getElementById('refresh-btn');
     if (btn) {
@@ -398,6 +433,7 @@ async function handleRefresh() {
             loadPosts(),
             loadSignals(),
             loadPolymarketTrump(),
+            loadTrumpCoin(),
             loadModels()
         ]);
     } catch (e) {
@@ -436,7 +472,43 @@ document.addEventListener('DOMContentLoaded', () => {
     loadPosts();
     loadSignals();
     loadPolymarketTrump();
+    loadTrumpCoin();
     loadModels();
 
-    // Removed automatic interval refreshes. The user must click the manual refresh button.
+    // Auto-refresh logic (as per new requirements)
+    setInterval(() => {
+        const btn = document.getElementById('refresh-btn');
+        if (btn && !btn.disabled) {
+            btn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> 5m 更新...';
+            btn.disabled = true;
+
+            Promise.all([
+                loadPolymarketTrump()
+            ]).finally(() => {
+                const area = document.getElementById('pm-live-area');
+                if (area) {
+                    area.classList.remove('update-flash');
+                    void area.offsetWidth; // trigger reflow
+                    area.classList.add('update-flash');
+                }
+
+                btn.innerHTML = '<i class="fas fa-check"></i> 更新完成';
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="fas fa-sync-alt"></i> 重新整理';
+                    btn.disabled = false;
+                }, 2000);
+            });
+        }
+    }, 5 * 60 * 1000); // 5 minutes
+
+    setInterval(() => {
+        loadTrumpCoin().then(() => {
+            const area = document.getElementById('card-trump-coin');
+            if (area) {
+                area.classList.remove('update-flash');
+                void area.offsetWidth; // trigger reflow
+                area.classList.add('update-flash');
+            }
+        });
+    }, 60 * 60 * 1000); // 1 hour
 });
