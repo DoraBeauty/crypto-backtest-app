@@ -42,6 +42,15 @@
 
     <main class="indicators-container">
 
+        <!-- AI Analysis Summary Card -->
+        <section class="indicator-card glass-panel" style="background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,215,0,0.02)); border: 1px solid rgba(255,215,0,0.3); text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px;" onclick="window.location.href='analysis.html'">
+            <h2 style="font-size: 20px; color: var(--gold); margin: 0; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-chart-line"></i> AI 深度分析 (完整版)
+            </h2>
+            <p style="font-size: 14px; color: var(--text-primary); margin: 0;">包含模型排名、季節性模式、反向指標與 Honest Warnings。</p>
+            <span style="display: inline-block; margin-top: 8px; font-size: 14px; color: var(--accent-neon); font-weight: bold;">查看完整報告 →</span>
+        </section>
+
         <!-- AI Insights Panel -->
         <section class="indicator-card glass-panel" id="ai-insight-panel" style="display: none; border-left: 4px solid var(--accent-neon); background: rgba(56, 189, 248, 0.05);">
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
@@ -118,12 +127,35 @@
             </div>
         </section>
 
+        <!-- $TRUMP Coin Card -->
+        <section class="indicator-card glass-panel" id="card-trump-coin">
+            <div class="card-header">
+                <div class="title-group">
+                    <h2>🪙 $TRUMP 官方幣 <span class="badge vocab-btn" data-term="LIVE" data-def="即時資料。表示該資料是目前系統最新且即時監測到的狀態。">LIVE</span></h2>
+                    <span class="desc-short">即時迷因幣價追蹤</span>
+                </div>
+                <button class="toggle-btn" onclick="openModal('desc-coin')">
+                    <i class="fas fa-info-circle"></i>
+                </button>
+            </div>
+            <div class="status-grid" id="coin-area">
+                <div class="status-box">
+                    <span class="status-label">即時價格</span>
+                    <strong class="status-value text-neutral" id="coin-price">--</strong>
+                </div>
+                <div class="status-box">
+                    <span class="status-label">24h 漲跌</span>
+                    <strong class="status-value text-neutral" id="coin-change">--</strong>
+                </div>
+            </div>
+        </section>
+
         <!-- Prediction Markets Card -->
         <section class="indicator-card glass-panel">
             <div class="card-header">
                 <div class="title-group">
                     <h2><span class="vocab-btn" data-term="Polymarket" data-def="一個全球知名的去中心化預測市場平台，人們可以在上面用加密貨幣下注預測各種未來事件發生的機率。">Polymarket</span> 預測 <span class="badge vocab-btn" data-term="LIVE" data-def="即時資料。表示該資料是目前系統最新且即時監測到的狀態。">LIVE</span></h2>
-                    <span class="desc-short">即時川普相關預測市場</span>
+                    <span class="desc-short" id="pm-desc">即時川普相關預測市場</span>
                 </div>
                 <button class="toggle-btn" onclick="openModal('desc-pm')">
                     <i class="fas fa-info-circle"></i>
@@ -250,6 +282,23 @@
                     <li><strong>最危險信號 (純關稅)：</strong> 當天只有 <span class="vocab-btn" data-term="TARIFF" data-def="關稅。對進口商品徵收的稅，通常會引發貿易戰擔憂，對股市不利。">TARIFF</span> (關稅) 而沒有 <span class="vocab-btn" data-term="DEAL" data-def="交易/談判。代表雙方有望達成協議，對股市有利。">DEAL</span> (談判) 信號時，隔天股市平均下跌 -1.057%。</li>
                     <li><strong>經典連招 (先攻後談)：</strong> 當天先出現 <span class="vocab-btn" data-term="ATTACK" data-def="攻擊/施壓。指川普在推文中嚴厲批評或威脅對手。">ATTACK</span> (攻擊)，接著出現 <span class="vocab-btn" data-term="DEAL" data-def="交易/談判。">DEAL</span> (談判)，勝率達 65.2%，這是典型的川普談判術。</li>
                     <li><strong>情緒看多：</strong> <span class="vocab-btn" data-term="DEAL" data-def="交易/談判。">DEAL</span> (談判)、<span class="vocab-btn" data-term="RELIEF" data-def="緩解/寬減。代表緊張局勢降溫或壓力解除，通常是強烈的買進訊號。">RELIEF</span> (緩解)、<span class="vocab-btn" data-term="MARKET_BRAG" data-def="股市炫耀。川普在推文中誇耀股市上漲或經濟表現優異，通常意味著政府不希望股市下跌。">MARKET_BRAG</span> (炫耀股市) 都是典型的看多信號。</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for $TRUMP Coin Explanation -->
+<div id="desc-coin" class="modal">
+    <div class="modal-content glass-panel">
+        <span class="close-btn" onclick="closeModal('desc-coin')">&times;</span>
+        <h2><i class="fas fa-info-circle"></i> $TRUMP 官方幣說明</h2>
+        <div class="modal-body">
+            <div class="logic-item">
+                <p>追蹤 <span class="vocab-btn" data-term="$TRUMP" data-def="與川普官方或迷因相關的加密貨幣。">$TRUMP</span> 迷因幣的即時價格。</p>
+                <ul>
+                    <li><strong>相關性：</strong> 與 S&P 500 有一定的相關性，有時能作為市場風險偏好或川普事件的領先指標。</li>
+                    <li><strong>即時追蹤：</strong> 資料來自 CoinGecko API，反映最新的市場定價。</li>
                 </ul>
             </div>
         </div>

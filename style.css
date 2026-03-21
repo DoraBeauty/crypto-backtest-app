@@ -25,7 +25,8 @@
 body {
     background-color: var(--bg-main);
     color: var(--text-primary);
-    line-height: 1.5;
+    line-height: 1.75;
+    font-size: 20px; /* Base body text size increased for accessibility */
     background-image:
         radial-gradient(circle at 15% 50%, rgba(0, 240, 255, 0.03), transparent 25%),
         radial-gradient(circle at 85% 30%, rgba(255, 51, 102, 0.03), transparent 25%);
@@ -48,7 +49,7 @@ h1, h2 {
 /* Cache Notice */
 .cache-notice {
     text-align: center;
-    font-size: 11px;
+    font-size: 14px;
     color: var(--accent-safe);
     background: rgba(0, 255, 136, 0.05);
     border: 1px solid rgba(0, 255, 136, 0.2);
@@ -65,9 +66,9 @@ h1, h2 {
     background: rgba(0, 240, 255, 0.1);
     border: 1px solid rgba(0, 240, 255, 0.3);
     color: var(--accent-neon);
-    padding: 6px 12px;
+    padding: 8px 16px;
     border-radius: 6px;
-    font-size: 12px;
+    font-size: 14px;
     cursor: pointer;
     transition: all 0.2s;
     display: inline-flex;
@@ -119,12 +120,12 @@ h1, h2 {
 }
 
 .nav-tab {
-    padding: 8px 24px;
+    padding: 10px 24px;
     border-radius: 20px;
     background: rgba(255, 255, 255, 0.05);
     color: var(--text-secondary);
     text-decoration: none;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 500;
     border: 1px solid var(--border-glass);
     transition: all 0.3s ease;
@@ -160,7 +161,7 @@ h1, h2 {
 }
 
 .dashboard-header h1 {
-    font-size: 28px;
+    font-size: 32px;
     color: #fff;
 }
 
@@ -170,7 +171,7 @@ h1, h2 {
 }
 
 .subtitle {
-    font-size: 12px;
+    font-size: 14px;
     color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -218,19 +219,19 @@ h1, h2 {
 }
 
 .status-text .label {
-    font-size: 11px;
+    font-size: 14px;
     color: var(--text-secondary);
 }
 
 .status-text strong {
-    font-size: 16px;
+    font-size: 18px;
     color: var(--text-primary);
 }
 
 .sentiment-desc {
-    font-size: 13px;
+    font-size: 15px;
     color: var(--text-secondary);
-    line-height: 1.6;
+    line-height: 1.75;
 }
 
 /* Warning State Colors */
@@ -297,7 +298,7 @@ h1, h2 {
 }
 
 .title-group h2 {
-    font-size: 20px;
+    font-size: 24px;
     color: #fff;
     display: flex;
     align-items: center;
@@ -333,7 +334,7 @@ h1, h2 {
 
 .badge {
     font-family: 'Noto Sans TC', sans-serif;
-    font-size: 10px;
+    font-size: 12px;
     background: rgba(0, 240, 255, 0.15);
     color: var(--accent-neon);
     padding: 2px 6px;
@@ -342,13 +343,13 @@ h1, h2 {
 }
 
 .desc-short {
-    font-size: 12px;
+    font-size: 14px;
     color: var(--text-secondary);
     display: block;
 }
 
 .update-time {
-    font-size: 10px;
+    font-size: 12px;
     color: var(--text-secondary);
     display: block;
     margin-top: 4px;
@@ -371,7 +372,7 @@ h1, h2 {
     background: none;
     border: none;
     color: var(--text-secondary);
-    font-size: 16px;
+    font-size: 20px;
     cursor: pointer;
     padding: 4px;
     transition: transform 0.3s;
@@ -399,9 +400,9 @@ h1, h2 {
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: var(--text-secondary);
-    padding: 10px 4px;
+    padding: 12px 6px;
     border-radius: 8px;
-    font-size: 13px;
+    font-size: 15px;
     transition: all 0.2s;
     font-weight: 500;
 }
@@ -464,13 +465,13 @@ h1, h2 {
 }
 
 .status-box .status-label {
-    font-size: 12px;
+    font-size: 14px;
     color: var(--text-secondary);
     margin-bottom: 8px;
 }
 
 .status-box .status-value {
-    font-size: 20px;
+    font-size: 24px;
     font-weight: 700;
 }
 
@@ -513,14 +514,14 @@ h1, h2 {
 .post-meta {
     display: flex;
     justify-content: space-between;
-    font-size: 11px;
+    font-size: 13px;
     color: var(--text-secondary);
     margin-bottom: 8px;
 }
 
 .post-text {
-    font-size: 14px;
-    line-height: 1.5;
+    font-size: 16px;
+    line-height: 1.75;
     margin-bottom: 10px;
     word-wrap: break-word; /* Legacy support */
     overflow-wrap: break-word; /* Modern standard */
@@ -531,12 +532,14 @@ h1, h2 {
     background: transparent;
     border: none;
     color: var(--text-secondary);
-    font-size: 12px;
+    font-size: 14px;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     gap: 4px;
     transition: color 0.2s;
+    padding: 6px 12px;
+    min-height: 44px; /* Language switcher enlarged min-height */
 }
 
 .translate-btn:hover {
@@ -548,7 +551,7 @@ h1, h2 {
     padding-top: 8px;
     border-top: 1px dashed rgba(255, 255, 255, 0.1);
     color: var(--text-primary);
-    font-size: 14px;
+    font-size: 16px;
 }
 
 .post-signals {
@@ -559,15 +562,15 @@ h1, h2 {
 }
 
 .ps-label {
-    font-size: 11px;
+    font-size: 13px;
     color: var(--text-secondary);
 }
 
 .sig-tag {
     background: rgba(0, 240, 255, 0.1);
     color: var(--accent-neon);
-    font-size: 11px;
-    padding: 3px 8px;
+    font-size: 13px;
+    padding: 4px 10px;
     border-radius: 4px;
     border: 1px solid rgba(0, 240, 255, 0.2);
 }
@@ -602,7 +605,7 @@ h1, h2 {
     display: flex;
     justify-content: space-between;
     margin-bottom: 8px;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 500;
 }
 
@@ -625,7 +628,7 @@ h1, h2 {
 .table-container table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 13px;
+    font-size: 15px;
     text-align: left;
 }
 
@@ -670,7 +673,7 @@ h1, h2 {
     display: none; /* Hidden by default */
     padding-top: 12px;
     border-top: 1px dashed rgba(255, 255, 255, 0.1);
-    font-size: 13px;
+    font-size: 15px;
     color: var(--text-primary);
 }
 
@@ -709,7 +712,7 @@ h1, h2 {
 .footer-note {
     margin-top: 30px;
     text-align: center;
-    font-size: 12px;
+    font-size: 14px;
     color: var(--text-secondary);
     line-height: 1.8;
     padding: 20px;
@@ -775,7 +778,7 @@ h1, h2 {
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 20px;
+    font-size: 24px;
 }
 
 .close-btn {
@@ -783,7 +786,7 @@ h1, h2 {
     position: absolute;
     top: 20px;
     right: 25px;
-    font-size: 28px;
+    font-size: 32px;
     font-weight: bold;
     cursor: pointer;
     transition: color 0.3s ease;
@@ -810,15 +813,15 @@ h1, h2 {
 
 .logic-item h3 {
     color: var(--text-primary);
-    font-size: 16px;
+    font-size: 18px;
     margin-top: 0;
     margin-bottom: 8px;
 }
 
 .logic-item p {
     color: var(--text-secondary);
-    font-size: 13px;
-    line-height: 1.6;
+    font-size: 15px;
+    line-height: 1.75;
     margin: 5px 0;
 }
 
@@ -858,7 +861,7 @@ h1, h2 {
     width: 250px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 10px rgba(0, 240, 255, 0.2);
     color: var(--text-primary);
-    font-size: 13px;
+    font-size: 15px;
     line-height: 1.5;
     opacity: 0;
     visibility: hidden;
@@ -877,7 +880,7 @@ h1, h2 {
 .vocab-tooltip strong {
     display: block;
     color: var(--accent-neon);
-    font-size: 14px;
+    font-size: 16px;
     margin-bottom: 6px;
     border-bottom: 1px dashed rgba(0, 240, 255, 0.3);
     padding-bottom: 4px;
