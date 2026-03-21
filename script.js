@@ -337,25 +337,16 @@ function processQuoteData(indicatorId, result, isInitialLoad = false) {
  * @param {number} retries - Number of retry attempts left
  */
 async function fetchQuoteWithRetry(indicatorId, symbol, retries = 3) {
-    const yfUrl = encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}`);
-    const apiUrl = `https://api.allorigins.win/get?url=${yfUrl}`;
+    // Append a timestamp to the Yahoo Finance URL to bust the allorigins cache
+    const yfUrl = encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?_t=${Date.now()}`);
+    // Use /raw to avoid the 'contents' JSON wrapper and HTML error pages when possible
+    const apiUrl = `https://api.allorigins.win/raw?url=${yfUrl}`;
 
     try {
         const response = await fetch(apiUrl);
         if (!response.ok) throw new Error(`Network response was not ok for ${symbol}`);
 
-        const responseData = await response.json();
-
-        if (!responseData.contents) {
-            throw new Error(`No contents found for ${symbol}`);
-        }
-
-        let parsedData;
-        try {
-            parsedData = JSON.parse(responseData.contents);
-        } catch (e) {
-            throw new Error(`Failed to parse JSON for ${symbol}. Proxy returned: ${responseData.contents.substring(0, 50)}`);
-        }
+        const parsedData = await response.json();
 
         if (parsedData && parsedData.chart && parsedData.chart.result && parsedData.chart.result.length > 0) {
             const resultData = parsedData.chart.result[0].meta;
