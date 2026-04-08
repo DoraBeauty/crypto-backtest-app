@@ -294,69 +294,11 @@ function processQuoteData(indicatorId, result, isInitialLoad = false) {
 }
 
 /**
- * Fetches a single quote with retry logic and delays to prevent rate limiting from the free CORS proxy.
- * @param {string} indicatorId - The ID of the indicator
- * @param {string} symbol - The Yahoo Finance symbol
+ * Fetches latest quotes for all indicators in a single batch request to speed up loading.
+ * @param {boolean} hideSkeleton - If true, do not show the skeleton loading (e.g., when cache is already shown).
  * @param {number} retries - Number of retry attempts left
  */
-async function fetchQuoteWithRetry(indicatorId, symbol, retries = 3) {
-    const yfUrl = encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}`);
-    const apiUrl = `https://api.allorigins.win/get?url=${yfUrl}`;
-
-    try {
-        const response = await fetch(apiUrl);
-        if (!response.ok) throw new Error(`Network response was not ok for ${symbol}`);
-
-        const responseData = await response.json();
-
-        if (!responseData.contents) {
-            throw new Error(`No contents found for ${symbol}`);
-        }
-
-        let parsedData;
-        try {
-            parsedData = JSON.parse(responseData.contents);
-        } catch (e) {
-            throw new Error(`Failed to parse JSON for ${symbol}. Proxy returned: ${responseData.contents.substring(0, 50)}`);
-        }
-
-        if (parsedData && parsedData.chart && parsedData.chart.result && parsedData.chart.result.length > 0) {
-            const resultData = parsedData.chart.result[0].meta;
-
-            // Format and process the data
-            processQuoteData(indicatorId, {
-                symbol: resultData.symbol,
-                regularMarketPrice: resultData.regularMarketPrice,
-                regularMarketPreviousClose: resultData.chartPreviousClose,
-                regularMarketTime: resultData.regularMarketTime
-            });
-            return true; // Success
-        }
-        throw new Error(`Invalid data format for ${symbol}`);
-    } catch (err) {
-        console.error(`Error fetching data for ${symbol} (Retries left: ${retries}):`, err.message);
-
-        if (retries > 0) {
-            // Wait 1 second before retrying
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            return fetchQuoteWithRetry(indicatorId, symbol, retries - 1);
-        } else {
-            // Out of retries, show error on UI
-            const timeSpan = document.getElementById(`time-${indicatorId}`);
-            if (timeSpan) {
-                timeSpan.classList.remove('skeleton');
-                timeSpan.innerHTML = `<span class="text-neutral">無法載入數據，請稍後再試</span>`;
-            }
-            return false; // Failed
-        }
-    }
-}
-
-/**
- * Fetches latest quotes for all indicators sequentially to avoid proxy rate limits.
- * @param {boolean} hideSkeleton - If true, do not show the skeleton loading (e.g., when cache is already shown).
- */
-async function fetchLatestQuotes(hideSkeleton = false) {
+async function fetchLatestQuotes(hideSkeleton = false, retries = 3) {
     if (!hideSkeleton) {
         // Show skeleton loading indicators before fetching
         Object.keys(symbolsMap).forEach(indicatorId => {
@@ -368,14 +310,72 @@ async function fetchLatestQuotes(hideSkeleton = false) {
         });
     }
 
-    const entries = Object.entries(symbolsMap);
+    const symbols = Object.values(symbolsMap).join(',');
+    // Using v7 quote endpoint for batch requests
+    const yfUrl = encodeURIComponent(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols}`);
+    const apiUrl = `https://api.allorigins.win/get?url=${yfUrl}`;
 
-    for (const [indicatorId, symbol] of entries) {
-        // Fetch sequentially and await to avoid slamming the free proxy
-        await fetchQuoteWithRetry(indicatorId, symbol);
+    try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error(`Network response was not ok`);
 
-        // Wait 500ms between each successful request to be nice to the proxy
-        await new Promise(resolve => setTimeout(resolve, 500));
+        const responseData = await response.json();
+
+        if (!responseData.contents) {
+            throw new Error(`No contents found`);
+        }
+
+        let parsedData;
+        try {
+            parsedData = JSON.parse(responseData.contents);
+        } catch (e) {
+            throw new Error(`Failed to parse JSON. Proxy returned: ${responseData.contents.substring(0, 50)}`);
+        }
+
+        if (parsedData && parsedData.quoteResponse && parsedData.quoteResponse.result) {
+            const results = parsedData.quoteResponse.result;
+
+            // Map the results back to our indicator IDs
+            const symbolToIdMap = Object.entries(symbolsMap).reduce((acc, [id, sym]) => {
+                acc[sym] = id;
+                return acc;
+            }, {});
+
+            results.forEach(quote => {
+                const indicatorId = symbolToIdMap[quote.symbol];
+                if (indicatorId) {
+                    processQuoteData(indicatorId, {
+                        symbol: quote.symbol,
+                        regularMarketPrice: quote.regularMarketPrice,
+                        regularMarketPreviousClose: quote.regularMarketPreviousClose,
+                        regularMarketTime: quote.regularMarketTime
+                    });
+                }
+            });
+
+            // Save to cache after all fetches are successful
+            saveCache();
+        } else {
+            throw new Error(`Unexpected JSON structure`);
+        }
+
+    } catch (err) {
+        console.error(`Error batch fetching data (Retries left: ${retries}):`, err.message);
+
+        if (retries > 0) {
+            // Wait 1 second before retrying
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            return fetchLatestQuotes(hideSkeleton, retries - 1);
+        } else {
+            // Out of retries, show error on UI
+            Object.keys(symbolsMap).forEach(indicatorId => {
+                const timeSpan = document.getElementById(`time-${indicatorId}`);
+                if (timeSpan) {
+                    timeSpan.classList.remove('skeleton');
+                    timeSpan.innerHTML = `<span class="text-neutral">無法載入數據，請稍後再試</span>`;
+                }
+            });
+        }
     }
 }
 
